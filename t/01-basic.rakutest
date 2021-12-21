@@ -1,0 +1,56 @@
+use Test;
+use highlighter;
+
+plan 12;
+
+my $haystack = "foo bar baz bar zop";
+
+is highlighter($haystack, "bar", "<em>", "</em>", :type<words>),
+  "foo <em>bar</em> baz <em>bar</em> zop",
+  'did "bar" get highlighted as a word';
+
+is highlighter($haystack, "BAR", "<em>", "</em>", :type<words>, :ignorecase),
+  "foo <em>bar</em> baz <em>bar</em> zop",
+  'did "BAR" get highlighted as a word case-insensitively';
+
+is highlighter($haystack, "ar", "<em>", "</em>", :type<words>),
+  $haystack,
+  'did "ar" NOT get highlighted as a word';
+
+is highlighter($haystack, "ba", "<em>", "</em>", :type<contains>),
+  "foo <em>ba</em>r <em>ba</em>z <em>ba</em>r zop",
+  'did "ba" get highlighted as a string';
+
+is highlighter($haystack, "BA", "<em>", "</em>", :type<contains>, :ignorecase),
+  "foo <em>ba</em>r <em>ba</em>z <em>ba</em>r zop",
+  'did "BA" get highlighted as a string case-insensitively';
+
+is highlighter($haystack, "zz", "<em>", "</em>", :type<words>),
+  $haystack,
+  'did "zz" NOT get highlighted as a string';
+
+is highlighter($haystack, "foo", "<em>", "</em>", :type<starts-with>),
+  "<em>foo</em> bar baz bar zop",
+  'did "foo" get highlighted at beginning';
+
+is highlighter($haystack, "FOO", "<em>","</em>",:type<starts-with>,:ignorecase),
+  "<em>foo</em> bar baz bar zop",
+  'did "FOO" get highlighted at beginning case-insensitively';
+
+is highlighter($haystack, "zz", "<em>", "</em>", :type<starts-with>),
+  $haystack,
+  'did "zz" NOT get highlighted at beginning';
+
+is highlighter($haystack, / << b.r >> /, "<em>", "</em>"),
+  "foo <em>bar</em> baz <em>bar</em> zop",
+  'did "b.r" get highlighted as a match';
+
+is highlighter($haystack, rx:i/ B.R /, "<em>", "</em>"),
+  "foo <em>bar</em> baz <em>bar</em> zop",
+  'did "B.R" get highlighted as a match case-insensitively';
+
+is highlighter($haystack, / zz /, "<em>", "</em>"),
+  $haystack,
+  'did "zz" NOT get highlighted as a match';
+
+# vim: expandtab shiftwidth=4
