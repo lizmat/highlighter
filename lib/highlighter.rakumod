@@ -1,4 +1,4 @@
-use has-word:ver<0.0.2>:auth<zef:lizmat>;
+use has-word:ver<0.0.3>:auth<zef:lizmat>;
 
 my $cursor-init := Match.^lookup("!cursor_init");
 
@@ -7,7 +7,7 @@ my sub highlight-from-indices(
   str $needle,
   str $before,
   str $after,
-      $ignorecase,
+      $found,
       \indices,
 ) {
     my int $chars = $needle.chars;
@@ -16,7 +16,7 @@ my sub highlight-from-indices(
     for indices.reverse -> int $pos {
         @parts.unshift: $haystack.substr($pos + $chars, $to - $pos - $chars);
         @parts.unshift: $after;
-        @parts.unshift: $ignorecase
+        @parts.unshift: $found
           ?? $haystack.substr($pos, $chars)
           !! $needle;
         @parts.unshift: $before;
@@ -39,11 +39,12 @@ multi sub highlighter(
   Str:D  $before,
   Str:D  $after = $before,
   Str:D :$type where $_ eq 'words',
-        :$ignorecase,
+        :i(:$ignorecase),
+        :m(:$ignoremark),
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase,
-      find-all-words($haystack, $needle, :$ignorecase)
+      $haystack, $needle, $before, $after, $ignorecase || $ignoremark,
+      find-all-words($haystack, $needle, :$ignorecase, :$ignoremark)
     )
 }
 
@@ -53,11 +54,12 @@ multi sub highlighter(
   Str:D  $before,
   Str:D  $after = $before,
   Str:D :$type where $_ eq 'contains',
-        :$ignorecase,
+        :i(:$ignorecase),
+        :m(:$ignoremark),
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase,
-      $haystack.indices($needle, :$ignorecase)
+      $haystack, $needle, $before, $after, $ignorecase || $ignoremark,
+      $haystack.indices($needle, :$ignorecase, :$ignoremark)
     )
 }
 
@@ -67,15 +69,30 @@ multi sub highlighter(
   Str:D  $before,
   Str:D  $after = $before,
   Str:D :$type where $_ eq 'starts-with',
-        :$ignorecase,
+        :i(:$ignorecase),
+        :m(:$ignoremark),
 --> Str:D) {
     my int $chars = $needle.chars;
-    $haystack.starts-with($needle, :$ignorecase)
+    $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
       ?? $before
            ~ $haystack.substr(0,$chars)
            ~ $after
            ~ $haystack.substr($chars)
       !! $haystack
+}
+
+multi sub highlighter(
+  Str:D  $haystack,
+  Str:D  $needle,
+  Str:D  $before,
+  Str:D  $after = $before,
+        :i(:$ignorecase),
+        :m(:$ignoremark),
+--> Str:D) {
+    highlight-from-indices(
+      $haystack, $needle, $before, $after, $ignorecase || $ignoremark,
+      $haystack.indices($needle, :$ignorecase, :$ignoremark)
+    )
 }
 
 multi sub highlighter(
@@ -166,19 +183,27 @@ should be highlighted.  Defaults to the C<before> string>.
 
 The following optional B<named> arguments can also be specified:
 
-=item type
+=item :type
 
-Optional if the needle is a regular expression, otherwise obligatory.
+Optional named argument.  If the needle is a regular expression, it is
+ignored.  Otherwise C<"contains"> is assumed.
 
 It indicates the type of search that should be performed.  Possible options
 are C<words> (look for the needle at word boundaries only), C<contains> (look
 for the needle at any position) and C<starts-with> (only look for the needle
 at the start of the string).
 
-=item ignorecase
+=item :ignorecase or :i
 
-If the second positional argument is a string, then this indicates whether
-any searches should be done in a case insensitive manner.
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done in a case
+insensitive manner.
+
+=item :ignoremark or :m
+
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done on the base
+characters only.
 
 =head1 AUTHOR
 
@@ -186,10 +211,14 @@ Elizabeth Mattijsen <liz@raku.rocks>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2021 Elizabeth Mattijsen
+Copyright 2021, 2022 Elizabeth Mattijsen
 
 Source can be located at: https://github.com/lizmat/highlighter .
 Comments and Pull Requests are welcome.
+
+If you like this module, or what I’m doing more generally, committing to a
+L<small sponsorship|https://github.com/sponsors/lizmat/>  would mean a great
+deal to me!
 
 This library is free software; you can redistribute it and/or modify it
 under the Artistic License 2.0.

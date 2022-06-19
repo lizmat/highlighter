@@ -45,15 +45,19 @@ Optional. This is the string that should be put **after** the thing that should 
 
 The following optional **named** arguments can also be specified:
 
-  * type
+  * :type
 
-Optional if the needle is a regular expression, otherwise obligatory.
+Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
 
 It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position) and `starts-with` (only look for the needle at the start of the string).
 
-  * ignorecase
+  * :ignorecase or :i
 
-If the second positional argument is a string, then this indicates whether any searches should be done in a case insensitive manner.
+Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done in a case insensitive manner.
+
+  * :ignoremark or :m
+
+Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done on the base characters only.
 
 AUTHOR
 ======
@@ -63,9 +67,11 @@ Elizabeth Mattijsen <liz@raku.rocks>
 COPYRIGHT AND LICENSE
 =====================
 
-Copyright 2021 Elizabeth Mattijsen
+Copyright 2021, 2022 Elizabeth Mattijsen
 
 Source can be located at: https://github.com/lizmat/highlighter . Comments and Pull Requests are welcome.
+
+If you like this module, or what I’m doing more generally, committing to a [small sponsorship](https://github.com/sponsors/lizmat/) would mean a great deal to me!
 
 This library is free software; you can redistribute it and/or modify it under the Artistic License 2.0.
 

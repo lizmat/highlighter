@@ -6,7 +6,7 @@
   "build-depends": [
   ],
   "depends": [
-    "has-word:ver<0.0.2>:auth<zef:lizmat>"
+    "has-word:ver<0.0.3>:auth<zef:lizmat>"
   ],
   "description": "highlight something inside a string",
   "license": "Artistic-2.0",
@@ -19,8 +19,9 @@
   ],
   "source-url": "https://github.com/lizmat/highlighter.git",
   "tags": [
+    "HIGHLIGHT"
   ],
   "test-depends": [
   ],
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
