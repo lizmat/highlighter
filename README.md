@@ -59,6 +59,14 @@ Optional named argument. If the second positional argument is a string, then thi
 
 Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done on the base characters only.
 
+NOTES
+=====
+
+Callable as a needle
+--------------------
+
+If a simple `Callable` (rather than a `Regex`) is passed as a needle, then the haystack will **always** be returned, as there is no way to determine what will need to be highlighted. Any other arguments will be ignored.
+
 AUTHOR
 ======
 

@@ -132,6 +132,9 @@ multi sub highlighter(
     }
 }
 
+# cannot highlight with a callable
+multi sub highlighter(Str:D $haystack, Callable:D, |) { $haystack }
+
 =begin pod
 
 =head1 NAME
@@ -204,6 +207,15 @@ insensitive manner.
 Optional named argument.  If the second positional argument is a string,
 then this indicates whether any searches should be done on the base
 characters only.
+
+=head1 NOTES
+
+=head2 Callable as a needle
+
+If a simple C<Callable> (rather than a C<Regex>) is passed as a needle,
+then the haystack will B<always> be returned, as there is no way to
+determine what will need to be highlighted.  Any other arguments will
+be ignored.
 
 =head1 AUTHOR
 

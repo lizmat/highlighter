@@ -2,6 +2,9 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.3  2022-06-20T22:03:43+02:00
+    - Add candidate for Callable as a needle
+
 0.0.2  2022-06-19T22:34:42+02:00
     - Up dependency on "has-word"
     - Add sponsor link

@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 13;
+plan 14;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -56,5 +56,9 @@ is highlighter($haystack, / zz /, "<em>", "</em>"),
 is highlighter($haystack, 'ar', "<em>", "</em>"),
   "foo b<em>ar</em> baz b<em>ar</em> zop",
   'did "ar" get highlighted';
+
+is highlighter($haystack, *.contains("foo")),
+  $haystack,
+  'did we get no highlighting at all';
 
 # vim: expandtab shiftwidth=4
