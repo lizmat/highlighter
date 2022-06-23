@@ -1,7 +1,5 @@
 use has-word:ver<0.0.3>:auth<zef:lizmat>;
 
-my $cursor-init := Match.^lookup("!cursor_init");
-
 my sub highlight-from-indices(
   str $haystack,
   str $needle,
@@ -95,22 +93,26 @@ multi sub highlighter(
     )
 }
 
+# Sadly, no API for this
+sub cstack(\cursor) {
+    use nqp;
+    nqp::getattr(cursor,Match,'$!cstack')
+}
+
 multi sub highlighter(
     Str:D  $haystack,
   Regex:D  $regex,
     Str:D  $before,
     Str:D  $after = $before,
 --> Str:D) {
-    my     $cursor;
     my int $pos;
     my int $c;
     my int @fromtos;
 
-    while ($pos = (
-      $cursor := $regex($cursor-init(Match, $haystack, :$c))
-    ).pos) > -1 {
-        @fromtos.push: $c = $pos;
-        @fromtos.push: $cursor.from;
+    while $haystack.match($regex, :$c) {
+        @fromtos.push: $/.to;
+        @fromtos.push: $/.from;
+        $c = $/.pos;
     }
 
     my int $to = $haystack.chars;
