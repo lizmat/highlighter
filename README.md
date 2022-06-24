@@ -59,6 +59,10 @@ Optional named argument. If the second positional argument is a string, then thi
 
 Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done on the base characters only.
 
+  * :only
+
+Optional named argument. Indicates that only the strings that were found should be returned (and not have anything inbetween, except for any `before` and `after` strings). Defaults to `False`.
+
 NOTES
 =====
 

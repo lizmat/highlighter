@@ -2,6 +2,10 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.5  2022-06-24T11:32:59+02:00
+    - Remove dead code
+    - Add support for ":only" named argument.
+
 0.0.4  2022-06-23T11:08:04+02:00
     - Handle capture markers by reverting to using .match
 

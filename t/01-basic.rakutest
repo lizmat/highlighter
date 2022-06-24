@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 15;
+plan 16;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -63,6 +63,10 @@ is highlighter($haystack, *.contains("foo")),
 
 is highlighter($haystack, / <( ba \w )> /, "<em>", "</em>"),
   'foo <em>bar</em> <em>baz</em> <em>bar</em> zop',
-  'did we get no highlighting at all';
+  'did we get correct highlighting with capture markers';
+
+is highlighter($haystack, / <( ba \w )> /, "", "\n", :only),
+  "bar\nbaz\nbar\n",
+  'did we get correct highlighting with :only';
 
 # vim: expandtab shiftwidth=4

@@ -1,31 +1,33 @@
 use has-word:ver<0.0.3>:auth<zef:lizmat>;
 
 my sub highlight-from-indices(
-  str $haystack,
-  str $needle,
-  str $before,
-  str $after,
-      $found,
-      \indices,
+     str $haystack,
+     str $needle,
+     str $before,
+     str $after,
+  Bool() $found,
+  Bool() $only,
+         \indices,
 ) {
-    my int $chars = $needle.chars;
-    my int $to    = $haystack.chars;
+    my int $size = chars($needle);
+    my int $to   = chars($haystack);
     my str @parts;
+
     for indices.reverse -> int $pos {
-        @parts.unshift: $haystack.substr($pos + $chars, $to - $pos - $chars);
+        @parts.unshift: $haystack.substr($pos + $size, $to - $pos - $size)
+          unless $only;
         @parts.unshift: $after;
-        @parts.unshift: $found
-          ?? $haystack.substr($pos, $chars)
-          !! $needle;
+        @parts.unshift: $found ?? substr($haystack, $pos, $size) !! $needle;
         @parts.unshift: $before;
         $to = $pos;
     }
 
-    if $to == $haystack.chars {   # no highlighting whatsoever
+    if $to == chars($haystack) {   # no highlighting whatsoever
         $haystack
     }
     else {
-        @parts.unshift($haystack.substr(0, $to)) if $to;
+        @parts.unshift: substr($haystack, 0, $to)
+          if $to && !$only;
         @parts.join
     }
 }
@@ -39,9 +41,10 @@ multi sub highlighter(
   Str:D :$type where $_ eq 'words',
         :i(:$ignorecase),
         :m(:$ignoremark),
+        :$only,
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase || $ignoremark,
+      $haystack, $needle, $before, $after, $ignorecase || $ignoremark, $only,
       find-all-words($haystack, $needle, :$ignorecase, :$ignoremark)
     )
 }
@@ -54,9 +57,10 @@ multi sub highlighter(
   Str:D :$type where $_ eq 'contains',
         :i(:$ignorecase),
         :m(:$ignoremark),
+        :$only,
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase || $ignoremark,
+      $haystack, $needle, $before, $after, $ignorecase || $ignoremark, $only,
       $haystack.indices($needle, :$ignorecase, :$ignoremark)
     )
 }
@@ -69,13 +73,14 @@ multi sub highlighter(
   Str:D :$type where $_ eq 'starts-with',
         :i(:$ignorecase),
         :m(:$ignoremark),
+        :$only,
 --> Str:D) {
     my int $chars = $needle.chars;
     $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
       ?? $before
            ~ $haystack.substr(0,$chars)
            ~ $after
-           ~ $haystack.substr($chars)
+           ~ ($only || $haystack.substr($chars))
       !! $haystack
 }
 
@@ -86,17 +91,12 @@ multi sub highlighter(
   Str:D  $after = $before,
         :i(:$ignorecase),
         :m(:$ignoremark),
+        :$only,
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase || $ignoremark,
+      $haystack, $needle, $before, $after, $ignorecase || $ignoremark, $only,
       $haystack.indices($needle, :$ignorecase, :$ignoremark)
     )
-}
-
-# Sadly, no API for this
-sub cstack(\cursor) {
-    use nqp;
-    nqp::getattr(cursor,Match,'$!cstack')
 }
 
 multi sub highlighter(
@@ -104,6 +104,7 @@ multi sub highlighter(
   Regex:D  $regex,
     Str:D  $before,
     Str:D  $after = $before,
+   Bool() :$only,
 --> Str:D) {
     my int $pos;
     my int $c;
@@ -118,7 +119,8 @@ multi sub highlighter(
     my int $to = $haystack.chars;
     my str @parts;
     for @fromtos.reverse -> int $from, int $pos {
-        @parts.unshift: $haystack.substr($pos, $to - $pos);
+        @parts.unshift: $only || $haystack.substr($pos, $to - $pos)
+          unless $only;
         @parts.unshift: $after;
         @parts.unshift: $haystack.substr($from, $pos - $from);
         @parts.unshift: $before;
@@ -129,7 +131,8 @@ multi sub highlighter(
         $haystack
     }
     else {
-        @parts.unshift($haystack.substr(0, $to)) if $to;
+        @parts.unshift: $only || $haystack.substr(0, $to)
+          if $to && !$only;
         @parts.join
     }
 }
@@ -209,6 +212,12 @@ insensitive manner.
 Optional named argument.  If the second positional argument is a string,
 then this indicates whether any searches should be done on the base
 characters only.
+
+=item :only
+
+Optional named argument.  Indicates that only the strings that were found
+should be returned (and not have anything inbetween, except for any
+C<before> and C<after> strings).  Defaults to C<False>.
 
 =head1 NOTES
 
