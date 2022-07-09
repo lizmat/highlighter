@@ -63,13 +63,17 @@ Optional named argument. If the second positional argument is a string, then thi
 
 Optional named argument. Indicates that only the strings that were found should be returned (and not have anything inbetween, except for any `before` and `after` strings). Defaults to `False`.
 
+  * :summary-if-larger-than
+
+Optional named argument. Indicates the number of characters a string must exceed to have the non-highlighted parts shortened to try to fit the indicated number of characters. Defaults to `Any`, indicate no summarizing should take place.
+
 NOTES
 =====
 
 Callable as a needle
 --------------------
 
-If a simple `Callable` (rather than a `Regex`) is passed as a needle, then the haystack will **always** be returned, as there is no way to determine what will need to be highlighted. Any other arguments will be ignored.
+If a simple `Callable` (rather than a `Regex`) is passed as a needle, then the haystack will **always** be returned, as there is no way to determine what will need to be highlighted. Any other arguments, apart from the `:summary-if-larger-than` named argument, will be ignored.
 
 AUTHOR
 ======

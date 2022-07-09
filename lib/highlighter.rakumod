@@ -7,29 +7,74 @@ my sub highlight-from-indices(
      str $after,
   Bool() $found,
   Bool() $only,
+         $summary-if-larger-than,
          \indices,
 ) {
-    my int $size = chars($needle);
-    my int $to   = chars($haystack);
-    my str @parts;
 
-    for indices.reverse -> int $pos {
-        @parts.unshift: $haystack.substr($pos + $size, $to - $pos - $size)
-          unless $only;
-        @parts.unshift: $after;
-        @parts.unshift: $found ?? substr($haystack, $pos, $size) !! $needle;
-        @parts.unshift: $before;
-        $to = $pos;
-    }
+    # something to highlight
+    if indices.elems {
+        my int $to   = chars($haystack);
+        my int $size = chars($needle);
+        my str @parts;
 
-    if $to == chars($haystack) {   # no highlighting whatsoever
-        $haystack
-    }
-    else {
-        @parts.unshift: substr($haystack, 0, $to)
-          if $to && !$only;
+        # summarizing
+        if !$only && $summary-if-larger-than && $to > $summary-if-larger-than {
+            for indices.reverse -> int $pos {
+                my int $between = $to - $pos - $size;
+                @parts.unshift: $between < 31
+                  ?? substr($haystack, $pos + $size, $between)
+                  !! elems(@parts)
+                    ?? substr($haystack, $pos + $size, 14)
+                         ~ '...'
+                         ~ substr($haystack, $pos + $size + $between - 14, 14)
+                    !! substr($haystack, $pos + $size, 14) ~ '...';
+
+                @parts.unshift: $after;
+                @parts.unshift: $found
+                  ?? substr($haystack, $pos, $size)
+                  !! $needle;
+                @parts.unshift: $before;
+                $to = $pos;
+            }
+
+            if $to && !$only {
+                @parts.unshift: $to < 15
+                  ?? substr($haystack, 0, $to)
+                  !! '...' ~ substr($haystack, $to - 11, 11)
+            }
+        }
+
+        # NOT summarizing
+        else {
+            for indices.reverse -> int $pos {
+                @parts.unshift:
+                  $haystack.substr($pos + $size, $to - $pos - $size)
+                  unless $only;
+                @parts.unshift: $after;
+                @parts.unshift: $found
+                  ?? substr($haystack, $pos, $size)
+                  !! $needle;
+                @parts.unshift: $before;
+                $to = $pos;
+            }
+
+            @parts.unshift: substr($haystack, 0, $to)
+              if $to && !$only;
+        }
         @parts.join
     }
+
+    # nothing to highlight
+    else {
+        nothing($haystack, $summary-if-larger-than)
+    }
+}
+
+# nothing to highlight
+my sub nothing(str $haystack, $summary-if-larger-than) {
+    $summary-if-larger-than && chars($haystack) > $summary-if-larger-than
+      ?? substr($haystack, 0, $summary-if-larger-than - 3) ~ '...'
+      !! $haystack
 }
 
 proto sub highlighter(|) is export {*}
@@ -39,12 +84,14 @@ multi sub highlighter(
   Str:D  $before,
   Str:D  $after = $before,
   Str:D :$type where $_ eq 'words',
+        :$summary-if-larger-than,
         :i(:$ignorecase),
         :m(:$ignoremark),
         :$only,
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase || $ignoremark, $only,
+      $haystack, $needle, $before, $after,
+      $ignorecase || $ignoremark, $only, $summary-if-larger-than,
       find-all-words($haystack, $needle, :$ignorecase, :$ignoremark)
     )
 }
@@ -55,33 +102,51 @@ multi sub highlighter(
   Str:D  $before,
   Str:D  $after = $before,
   Str:D :$type where $_ eq 'contains',
+        :$summary-if-larger-than,
         :i(:$ignorecase),
         :m(:$ignoremark),
         :$only,
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase || $ignoremark, $only,
+      $haystack, $needle, $before, $after,
+      $ignorecase || $ignoremark, $only, $summary-if-larger-than,
       $haystack.indices($needle, :$ignorecase, :$ignoremark)
     )
 }
 
 multi sub highlighter(
-  Str:D  $haystack,
-  Str:D  $needle,
-  Str:D  $before,
-  Str:D  $after = $before,
-  Str:D :$type where $_ eq 'starts-with',
-        :i(:$ignorecase),
-        :m(:$ignoremark),
-        :$only,
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D  $before,
+   Str:D  $after = $before,
+   Str:D :$type where $_ eq 'starts-with',
+         :$only,
+         :$summary-if-larger-than,
+         :i(:$ignorecase),
+         :m(:$ignoremark),
 --> Str:D) {
-    my int $chars = $needle.chars;
-    $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
-      ?? $before
-           ~ $haystack.substr(0,$chars)
-           ~ $after
-           ~ ($only || $haystack.substr($chars))
-      !! $haystack
+
+    if $haystack.starts-with($needle, :$ignorecase, :$ignoremark) {
+        if $only {
+            $before ~ $needle ~ $after
+        }
+        else {
+            my int $size = $needle.chars;
+            $before
+              ~ $haystack.substr(0, $size)
+              ~ $after
+              ~ ($summary-if-larger-than
+                  && $haystack.chars > $summary-if-larger-than
+                  ?? $haystack.substr(
+                       $size, $summary-if-larger-than - $size - 3
+                     ) ~ '...'
+                  !! $haystack.substr($size)
+                )
+        }
+    }
+    else {
+        nothing($haystack, $summary-if-larger-than)
+    }
 }
 
 multi sub highlighter(
@@ -89,12 +154,14 @@ multi sub highlighter(
   Str:D  $needle,
   Str:D  $before,
   Str:D  $after = $before,
+        :$summary-if-larger-than,
         :i(:$ignorecase),
         :m(:$ignoremark),
         :$only,
 --> Str:D) {
     highlight-from-indices(
-      $haystack, $needle, $before, $after, $ignorecase || $ignoremark, $only,
+      $haystack, $needle, $before, $after,
+      $ignorecase || $ignoremark, $only, $summary-if-larger-than,
       $haystack.indices($needle, :$ignorecase, :$ignoremark)
     )
 }
@@ -104,7 +171,8 @@ multi sub highlighter(
   Regex:D  $regex,
     Str:D  $before,
     Str:D  $after = $before,
-   Bool() :$only,
+          :$summary-if-larger-than,
+          :$only,
 --> Str:D) {
     my int $pos;
     my int $c;
@@ -116,29 +184,62 @@ multi sub highlighter(
         $c = $/.pos;
     }
 
-    my int $to = $haystack.chars;
-    my str @parts;
-    for @fromtos.reverse -> int $from, int $pos {
-        @parts.unshift: $only || $haystack.substr($pos, $to - $pos)
-          unless $only;
-        @parts.unshift: $after;
-        @parts.unshift: $haystack.substr($from, $pos - $from);
-        @parts.unshift: $before;
-        $to = $from;
+    # something to highlight
+    if elems(@fromtos)  {
+        my int $to = $haystack.chars;
+        my str @parts;
+        if !$only && $summary-if-larger-than && $to > $summary-if-larger-than {
+            for @fromtos.reverse -> int $from, int $pos {
+                my int $between = $to - $pos;
+                @parts.unshift: $between < 31
+                  ?? substr($haystack, $pos, $between)
+                  !! elems(@parts)
+                    ?? substr($haystack, $pos, 14)
+                         ~ '...'
+                         ~ substr($haystack, $pos + $between - 14, 14)
+                    !! substr($haystack, $pos, 14) ~ '...';
+
+                @parts.unshift: $after;
+                @parts.unshift: $haystack.substr($from, $pos - $from);
+                @parts.unshift: $before;
+                $to = $from;
+            }
+            if $to && !$only {
+                @parts.unshift: $to < 15
+                  ?? substr($haystack, 0, $to)
+                  !! '...' ~ substr($haystack, $to - 11, 11)
+            }
+        }
+        else {
+            for @fromtos.reverse -> int $from, int $pos {
+                @parts.unshift: $haystack.substr($pos, $to - $pos)
+                  unless $only;
+                @parts.unshift: $after;
+                @parts.unshift: $haystack.substr($from, $pos - $from);
+                @parts.unshift: $before;
+                $to = $from;
+            }
+            @parts.unshift: $haystack.substr(0, $to)
+              if $to && !$only;
+        }
+        @parts.join
     }
 
-    if $to == $haystack.chars {   # no highlighting whatsoever
-        $haystack
-    }
+    # nothing to highlight
     else {
-        @parts.unshift: $only || $haystack.substr(0, $to)
-          if $to && !$only;
-        @parts.join
+        nothing($haystack, $summary-if-larger-than)
     }
 }
 
 # cannot highlight with a callable
-multi sub highlighter(Str:D $haystack, Callable:D, |) { $haystack }
+multi sub highlighter(
+  Str:D $haystack,
+        &,
+       :$summary-if-larger-than,
+       |
+--> Str:D) {
+    nothing($haystack, $summary-if-larger-than)
+}
 
 =begin pod
 
@@ -219,14 +320,21 @@ Optional named argument.  Indicates that only the strings that were found
 should be returned (and not have anything inbetween, except for any
 C<before> and C<after> strings).  Defaults to C<False>.
 
+=item :summary-if-larger-than
+
+Optional named argument.  Indicates the number of characters a string
+must exceed to have the non-highlighted parts shortened to try to fit
+the indicated number of characters.  Defaults to C<Any>, indicate no
+summarizing should take place.
+
 =head1 NOTES
 
 =head2 Callable as a needle
 
 If a simple C<Callable> (rather than a C<Regex>) is passed as a needle,
 then the haystack will B<always> be returned, as there is no way to
-determine what will need to be highlighted.  Any other arguments will
-be ignored.
+determine what will need to be highlighted.  Any other arguments, apart
+from the C<:summary-if-larger-than> named argument, will be ignored.
 
 =head1 AUTHOR
 
