@@ -18,14 +18,25 @@ say highlighter "foo bar", "O", "*", :type<contains>, :ignorecase; # f*o**o* bar
 say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
 
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
+
+
+say columns "foo bar", "bar", :type<words>; # (4)
+
+say columns "foo bar", "O", :type<contains>, :ignorecase; # (1,2)
+
+say columns "foo bar", "fo", :type<starts-with>;      # (0)
+
+say columns "foo bar", / b.r /;                       # (4)
 ```
 
 DESCRIPTION
 ===========
 
-The highlighter distribution exports a single multi-dispatch subroutine `highlighter` that can be called to highlight a word, a string or the match of a regular expression inside a string.
+The highlighter distribution exports a multi-dispatch subroutine `highlighter` that can be called to highlight a word, a string or the match of a regular expression inside a string.
 
-All candidates of the `highlighter` subroutine take 4 positional parameters:
+It also exports a multi-dispatch subroutine `columns` that returns the columns at which highlighting should occur.
+
+All candidates of the `highlighter` subroutine take 4 positional parameters. All candidates of the `columns` subroutine take 2 positional parameters (with the same meaning of the first 2 positional parameters of `highlighter`):
 
   * haystack
 
@@ -37,11 +48,11 @@ This is either a string, or a regular expression indicating what should be highl
 
   * before
 
-This is the string that should be put **before** the thing that should be highlighted.
+This is the string that should be put **before** the thing that should be highlighted. Only applicable with `highlighter`.
 
   * after
 
-Optional. This is the string that should be put **after** the thing that should be highlighted. Defaults to the `before` string>.
+Optional. This is the string that should be put **after** the thing that should be highlighted. Defaults to the `before` string>. Only applicable with `highlighter`.
 
 The following optional **named** arguments can also be specified:
 
@@ -61,11 +72,11 @@ Optional named argument. If the second positional argument is a string, then thi
 
   * :only
 
-Optional named argument. Indicates that only the strings that were found should be returned (and not have anything inbetween, except for any `before` and `after` strings). Defaults to `False`.
+Optional named argument. Indicates that only the strings that were found should be returned (and not have anything inbetween, except for any `before` and `after` strings). Defaults to `False`. Only applicable to `highlighter`.
 
   * :summary-if-larger-than
 
-Optional named argument. Indicates the number of characters a string must exceed to have the non-highlighted parts shortened to try to fit the indicated number of characters. Defaults to `Any`, indicate no summarizing should take place.
+Optional named argument. Indicates the number of characters a string must exceed to have the non-highlighted parts shortened to try to fit the indicated number of characters. Defaults to `Any`, indicate no summarizing should take place. Only applicable to `highlighter`.
 
 NOTES
 =====

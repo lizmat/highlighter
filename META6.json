@@ -19,9 +19,10 @@
   ],
   "source-url": "https://github.com/lizmat/highlighter.git",
   "tags": [
-    "HIGHLIGHT"
+    "HIGHLIGHT",
+    "COLUMNS"
   ],
   "test-depends": [
   ],
-  "version": "0.0.6"
+  "version": "0.0.7"
 }

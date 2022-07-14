@@ -241,6 +241,63 @@ multi sub highlighter(
     nothing($haystack, $summary-if-larger-than)
 }
 
+proto sub columns(|) is export {*}
+multi sub columns(
+  Str:D  $haystack,
+  Str:D  $needle,
+  Str:D :$type where $_ eq 'words',
+        :i(:$ignorecase),
+        :m(:$ignoremark),
+) {
+    find-all-words($haystack, $needle, :$ignorecase, :$ignoremark)
+}
+
+multi sub columns(
+  Str:D  $haystack,
+  Str:D  $needle,
+  Str:D :$type where $_ eq 'contains',
+        :i(:$ignorecase),
+        :m(:$ignoremark),
+) {
+    $haystack.indices($needle, :$ignorecase, :$ignoremark)
+}
+
+multi sub columns(
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D :$type where $_ eq 'starts-with',
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+) {
+    $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
+      ?? BEGIN (0,)
+      !! ()
+}
+
+multi sub columns(
+  Str:D  $haystack,
+  Str:D  $needle,
+        :i(:$ignorecase),
+        :m(:$ignoremark),
+) {
+    $haystack.indices($needle, :$ignorecase, :$ignoremark)
+}
+
+multi sub columns(
+    Str:D  $haystack,
+  Regex:D  $regex,
+) {
+    my int $c;
+    my int @columns;
+
+    @columns.push: $c = $/.pos while $haystack.match($regex, :$c);
+
+    @columns
+}
+
+# callable is always at start
+multi sub columns(Str:D $haystack, &, |) { BEGIN (0,) }
+
 =begin pod
 
 =head1 NAME
@@ -261,15 +318,30 @@ say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
 
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
 
+
+say columns "foo bar", "bar", :type<words>; # (4)
+
+say columns "foo bar", "O", :type<contains>, :ignorecase; # (1,2)
+
+say columns "foo bar", "fo", :type<starts-with>;      # (0)
+
+say columns "foo bar", / b.r /;                       # (4)
+
 =end code
 
 =head1 DESCRIPTION
 
-The highlighter distribution exports a single multi-dispatch subroutine
+The highlighter distribution exports a multi-dispatch subroutine
 C<highlighter> that can be called to highlight a word, a string or the
 match of a regular expression inside a string.
 
-All candidates of the C<highlighter> subroutine take 4 positional parameters:
+It also exports a multi-dispatch subroutine C<columns> that returns the
+columns at which highlighting should occur.
+
+All candidates of the C<highlighter> subroutine take 4 positional
+parameters.  All candidates of the C<columns> subroutine take 2
+positional parameters (with the same meaning of the first 2 positional
+parameters of C<highlighter>):
 
 =item haystack
 
@@ -283,12 +355,13 @@ highlighted.
 =item before
 
 This is the string that should be put B<before> the thing that should be
-highlighted.
+highlighted.  Only applicable with C<highlighter>.
 
 =item after
 
 Optional.  This is the string that should be put B<after> the thing that
-should be highlighted.  Defaults to the C<before> string>.
+should be highlighted.  Defaults to the C<before> string>.  Only
+applicable with C<highlighter>.
 
 The following optional B<named> arguments can also be specified:
 
@@ -318,14 +391,15 @@ characters only.
 
 Optional named argument.  Indicates that only the strings that were found
 should be returned (and not have anything inbetween, except for any
-C<before> and C<after> strings).  Defaults to C<False>.
+C<before> and C<after> strings).  Defaults to C<False>.  Only applicable
+to C<highlighter>.
 
 =item :summary-if-larger-than
 
 Optional named argument.  Indicates the number of characters a string
 must exceed to have the non-highlighted parts shortened to try to fit
 the indicated number of characters.  Defaults to C<Any>, indicate no
-summarizing should take place.
+summarizing should take place.  Only applicable to C<highlighter>.
 
 =head1 NOTES
 
