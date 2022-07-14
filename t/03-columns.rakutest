@@ -5,68 +5,68 @@ plan 16;
 
 my $haystack = "foo bar baz bar zop";
 
-is-deeply columns($haystack, "bar", :type<words>).List,
-  (4,12),
+is-deeply columns($haystack, "bar", :type<words>),
+  (5,13),
   'did "bar" get highlighted as a word';
 
-is-deeply columns($haystack, "BAR", :type<words>, :ignorecase).List,
-  (4,12),
+is-deeply columns($haystack, "BAR", :type<words>, :ignorecase),
+  (5,13),
   'did "BAR" get highlighted as a word case-insensitively';
 
-is-deeply columns($haystack, "ar", :type<words>).List,
+is-deeply columns($haystack, "ar", :type<words>),
   (),
   'did "ar" NOT get highlighted as a word';
 
-is-deeply columns($haystack, "ba", :type<contains>).List,
-  (4,8,12),
+is-deeply columns($haystack, "ba", :type<contains>),
+  (5,9,13),
   'did "ba" get highlighted as a string';
 
-is-deeply columns($haystack, "BA", :type<contains>, :ignorecase).List,
-  (4,8,12),
+is-deeply columns($haystack, "BA", :type<contains>, :ignorecase),
+  (5,9,13),
   'did "BA" get highlighted as a string case-insensitively';
 
-is-deeply columns($haystack, "zz", :type<words>).List,
+is-deeply columns($haystack, "zz", :type<words>),
   (),
   'did "zz" NOT get highlighted as a string';
 
-is-deeply columns($haystack, "foo", :type<starts-with>).List,
-  (0,),
+is-deeply columns($haystack, "foo", :type<starts-with>),
+  (1,),
   'did "foo" get highlighted at beginning';
 
-is-deeply columns($haystack, "FOO", :type<starts-with>, :ignorecase).List,
-  (0,),
+is-deeply columns($haystack, "FOO", :type<starts-with>, :ignorecase),
+  (1,),
   'did "FOO" get highlighted at beginning case-insensitively';
 
-is-deeply columns($haystack, "zz", :type<starts-with>).List,
+is-deeply columns($haystack, "zz", :type<starts-with>),
   (),
   'did "zz" NOT get highlighted at beginning';
 
-is-deeply columns($haystack, / << b.r >> /).List,
-  (7,15),
+is-deeply columns($haystack, / << b.r >> /),
+  (8,16),
   'did "b.r" get highlighted as a match';
 
-is-deeply columns($haystack, rx:i/ B.R /).List,
-  (7,15),
+is-deeply columns($haystack, rx:i/ B.R /),
+  (8,16),
   'did "B.R" get highlighted as a match case-insensitively';
 
-is-deeply columns($haystack, / zz /).List,
+is-deeply columns($haystack, / zz /),
   (),
   'did "zz" NOT get highlighted as a match';
 
-is-deeply columns($haystack, 'ar').List,
-  (5,13),
+is-deeply columns($haystack, 'ar'),
+  (6,14),
   'did "ar" get highlighted';
 
-is-deeply columns($haystack, *.contains("foo")).List,
-  (0,),
+is-deeply columns($haystack, *.contains("foo")),
+  (),
   'did we get no highlighting at all';
 
-is-deeply columns($haystack, / <( ba \w )> /).List,
-  (7,11,15),
+is-deeply columns($haystack, / <( ba \w )> /),
+  (8,12,16),
   'did we get correct highlighting with capture markers';
 
-is-deeply columns($haystack, / <( ba \w )> /).List,
-  (7,11,15),
+is-deeply columns($haystack, / <( ba \w )> /),
+  (8,12,16),
   'did we get correct highlighting with :only';
 
 # vim: expandtab shiftwidth=4

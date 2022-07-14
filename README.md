@@ -20,13 +20,13 @@ say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
 
 
-say columns "foo bar", "bar", :type<words>; # (4)
+say columns "foo bar", "bar", :type<words>; # (5)
 
-say columns "foo bar", "O", :type<contains>, :ignorecase; # (1,2)
+say columns "foo bar", "O", :type<contains>, :ignorecase; # (2,3)
 
-say columns "foo bar", "fo", :type<starts-with>;      # (0)
+say columns "foo bar", "fo", :type<starts-with>;      # (1)
 
-say columns "foo bar", / b.r /;                       # (4)
+say columns "foo bar", / b.r /;                       # (5)
 ```
 
 DESCRIPTION
@@ -34,7 +34,7 @@ DESCRIPTION
 
 The highlighter distribution exports a multi-dispatch subroutine `highlighter` that can be called to highlight a word, a string or the match of a regular expression inside a string.
 
-It also exports a multi-dispatch subroutine `columns` that returns the columns at which highlighting should occur.
+It also exports a multi-dispatch subroutine `columns` that returns the columns (1-based) at which highlighting should occur.
 
 All candidates of the `highlighter` subroutine take 4 positional parameters. All candidates of the `columns` subroutine take 2 positional parameters (with the same meaning of the first 2 positional parameters of `highlighter`):
 

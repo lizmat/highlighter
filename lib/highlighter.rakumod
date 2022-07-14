@@ -248,8 +248,8 @@ multi sub columns(
   Str:D :$type where $_ eq 'words',
         :i(:$ignorecase),
         :m(:$ignoremark),
-) {
-    find-all-words($haystack, $needle, :$ignorecase, :$ignoremark)
+--> Seq:D) {
+    find-all-words($haystack, $needle, :$ignorecase, :$ignoremark).map: * + 1
 }
 
 multi sub columns(
@@ -258,8 +258,8 @@ multi sub columns(
   Str:D :$type where $_ eq 'contains',
         :i(:$ignorecase),
         :m(:$ignoremark),
-) {
-    $haystack.indices($needle, :$ignorecase, :$ignoremark)
+--> Seq:D) {
+    $haystack.indices($needle, :$ignorecase, :$ignoremark).map: * + 1
 }
 
 multi sub columns(
@@ -268,9 +268,9 @@ multi sub columns(
    Str:D :$type where $_ eq 'starts-with',
          :i(:$ignorecase),
          :m(:$ignoremark),
-) {
+--> List:D) {
     $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
-      ?? BEGIN (0,)
+      ?? BEGIN (1,)
       !! ()
 }
 
@@ -279,24 +279,24 @@ multi sub columns(
   Str:D  $needle,
         :i(:$ignorecase),
         :m(:$ignoremark),
-) {
-    $haystack.indices($needle, :$ignorecase, :$ignoremark)
+--> Seq:D) {
+    $haystack.indices($needle, :$ignorecase, :$ignoremark).map: * + 1
 }
 
 multi sub columns(
     Str:D  $haystack,
   Regex:D  $regex,
-) {
+--> Seq:D) {
     my int $c;
     my int @columns;
 
     @columns.push: $c = $/.pos while $haystack.match($regex, :$c);
 
-    @columns
+    @columns.map: * + 1
 }
 
 # callable is always at start
-multi sub columns(Str:D $haystack, &, |) { BEGIN (0,) }
+multi sub columns(Str:D $haystack, &, | --> List:D) { BEGIN () }
 
 =begin pod
 
@@ -319,13 +319,13 @@ say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
 
 
-say columns "foo bar", "bar", :type<words>; # (4)
+say columns "foo bar", "bar", :type<words>; # (5)
 
-say columns "foo bar", "O", :type<contains>, :ignorecase; # (1,2)
+say columns "foo bar", "O", :type<contains>, :ignorecase; # (2,3)
 
-say columns "foo bar", "fo", :type<starts-with>;      # (0)
+say columns "foo bar", "fo", :type<starts-with>;      # (1)
 
-say columns "foo bar", / b.r /;                       # (4)
+say columns "foo bar", / b.r /;                       # (5)
 
 =end code
 
@@ -336,7 +336,7 @@ C<highlighter> that can be called to highlight a word, a string or the
 match of a regular expression inside a string.
 
 It also exports a multi-dispatch subroutine C<columns> that returns the
-columns at which highlighting should occur.
+columns (1-based) at which highlighting should occur.
 
 All candidates of the C<highlighter> subroutine take 4 positional
 parameters.  All candidates of the C<columns> subroutine take 2
