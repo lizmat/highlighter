@@ -58,7 +58,7 @@ is-deeply columns($haystack, 'ar'),
   'did "ar" get highlighted';
 
 is-deeply columns($haystack, *.contains("foo")),
-  (),
+  (0,),
   'did we get no highlighting at all';
 
 is-deeply columns($haystack, / <( ba \w )> /),

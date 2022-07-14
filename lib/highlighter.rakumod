@@ -296,7 +296,7 @@ multi sub columns(
 }
 
 # callable is always at start
-multi sub columns(Str:D $haystack, &, | --> List:D) { BEGIN () }
+multi sub columns(Str:D $haystack, &, | --> List:D) { BEGIN (0,) }
 
 =begin pod
 
