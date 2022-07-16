@@ -42,11 +42,11 @@ is-deeply columns($haystack, "zz", :type<starts-with>),
   'did "zz" NOT get highlighted at beginning';
 
 is-deeply columns($haystack, / << b.r >> /),
-  (8,16),
+  (5,13),
   'did "b.r" get highlighted as a match';
 
 is-deeply columns($haystack, rx:i/ B.R /),
-  (8,16),
+  (5,13),
   'did "B.R" get highlighted as a match case-insensitively';
 
 is-deeply columns($haystack, / zz /),
@@ -62,11 +62,11 @@ is-deeply columns($haystack, *.contains("foo")),
   'did we get no highlighting at all';
 
 is-deeply columns($haystack, / <( ba \w )> /),
-  (8,12,16),
+  (5,9,13),
   'did we get correct highlighting with capture markers';
 
 is-deeply columns($haystack, / <( ba \w )> /),
-  (8,12,16),
+  (5,9,13),
   'did we get correct highlighting with :only';
 
 # vim: expandtab shiftwidth=4

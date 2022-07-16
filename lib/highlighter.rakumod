@@ -290,7 +290,10 @@ multi sub columns(
     my int $c;
     my int @columns;
 
-    @columns.push: $c = $/.pos while $haystack.match($regex, :$c);
+    while $haystack.match($regex, :$c) {
+        @columns.push: $/.from;
+        $c = $/.pos;
+    }
 
     @columns.map: * + 1
 }
