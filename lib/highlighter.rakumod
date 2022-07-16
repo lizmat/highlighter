@@ -167,25 +167,30 @@ multi sub highlighter(
 }
 
 multi sub highlighter(
-    Str:D  $haystack,
-  Regex:D  $regex,
-    Str:D  $before,
-    Str:D  $after = $before,
-          :$summary-if-larger-than,
-          :$only,
+       Str:D  $haystack,
+  Callable:D  $needle,
+       Str:D  $before = "",
+       Str:D  $after  = $before,
+             :$summary-if-larger-than,
+             :i(:$ignorecase),
+             :m(:$ignoremark),
+             :$only,
 --> Str:D) {
-    my int $pos;
-    my int $c;
-    my int @fromtos;
 
-    while $haystack.match($regex, :$c) {
-        @fromtos.push: $/.to;
-        @fromtos.push: $/.from;
-        $c = $/.pos;
+    my int @fromtos;
+    if Regex.ACCEPTS($needle) {
+        my int $pos;
+        my int $c;
+
+        while $haystack.match($needle, :$c) {
+            @fromtos.push: $/.to;
+            @fromtos.push: $/.from;
+            $c = $/.pos;
+        }
     }
 
     # something to highlight
-    if elems(@fromtos)  {
+    if elems(@fromtos) {
         my int $to = $haystack.chars;
         my str @parts;
         if !$only && $summary-if-larger-than && $to > $summary-if-larger-than {
@@ -231,16 +236,6 @@ multi sub highlighter(
     }
 }
 
-# cannot highlight with a callable
-multi sub highlighter(
-  Str:D $haystack,
-        &,
-       :$summary-if-larger-than,
-       |
---> Str:D) {
-    nothing($haystack, $summary-if-larger-than)
-}
-
 proto sub columns(|) is export {*}
 multi sub columns(
   Str:D  $haystack,
@@ -284,22 +279,27 @@ multi sub columns(
 }
 
 multi sub columns(
-    Str:D  $haystack,
-  Regex:D  $regex,
---> Seq:D) {
-    my int $c;
-    my int @columns;
+       Str:D  $haystack,
+  Callable:D  $needle,
+             :i(:$ignorecase),
+             :m(:$ignoremark),
+) {
 
-    while $haystack.match($regex, :$c) {
-        @columns.push: $/.from;
-        $c = $/.pos;
+    if Regex.ACCEPTS($needle) {
+        my int $c;
+        my $columns := IterationBuffer.CREATE;
+
+        while $haystack.match($needle, :$c) {
+            $columns.push: $/.from + 1;
+            $c = $/.pos;
+        }
+
+        $columns.List
     }
-
-    @columns.map: * + 1
+    else {
+        BEGIN (0,)
+    }
 }
-
-# callable is always at start
-multi sub columns(Str:D $haystack, &, | --> List:D) { BEGIN (0,) }
 
 =begin pod
 

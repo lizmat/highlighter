@@ -2,6 +2,11 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.11  2022-07-16T13:20:22+02:00
+    - Fix issue with highlighting on regexes: this feels like
+      some kind of dispatch issue in Rakudo, so work around it
+      for now
+
 0.0.10  2022-07-16T12:13:01+02:00
     - Fix issue with "columns" on regexes
 
