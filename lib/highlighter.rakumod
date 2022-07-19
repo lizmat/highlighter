@@ -131,17 +131,53 @@ multi sub highlighter(
             $before ~ $needle ~ $after
         }
         else {
-            my int $size = $needle.chars;
+            my int $needle-size = $needle.chars;
             $before
-              ~ $haystack.substr(0, $size)
+              ~ $haystack.substr(0, $needle-size)
               ~ $after
               ~ ($summary-if-larger-than
                   && $haystack.chars > $summary-if-larger-than
                   ?? $haystack.substr(
-                       $size, $summary-if-larger-than - $size - 3
+                       $needle-size, $summary-if-larger-than - $needle-size - 3
                      ) ~ '...'
-                  !! $haystack.substr($size)
+                  !! $haystack.substr($needle-size)
                 )
+        }
+    }
+    else {
+        nothing($haystack, $summary-if-larger-than)
+    }
+}
+
+multi sub highlighter(
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D  $before,
+   Str:D  $after = $before,
+   Str:D :$type where $_ eq 'ends-with',
+         :$only,
+         :$summary-if-larger-than,
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+--> Str:D) {
+
+    if $haystack.ends-with($needle, :$ignorecase, :$ignoremark) {
+        if $only {
+            $before ~ $needle ~ $after
+        }
+        else {
+            my int $haystack-size = $haystack.chars;
+            my int $needle-size   = $needle.chars;
+            my int $pos = $haystack-size - $needle-size;
+            ($summary-if-larger-than
+              && $haystack-size > $summary-if-larger-than
+              ?? '...' ~ $haystack.substr(
+                   $pos - $summary-if-larger-than-3, $summary-if-larger-than-3
+                 )
+              !! $haystack.substr(0, $pos)
+            ) ~ $before
+              ~ $haystack.substr($pos)
+              ~ $after
         }
     }
     else {
@@ -270,6 +306,18 @@ multi sub columns(
 }
 
 multi sub columns(
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D :$type where $_ eq 'ends-with',
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+--> List:D) {
+    $haystack.ends-with($needle, :$ignorecase, :$ignoremark)
+      ?? ($haystack.chars - $needle.chars + 1,)
+      !! ()
+}
+
+multi sub columns(
   Str:D  $haystack,
   Str:D  $needle,
         :i(:$ignorecase),
@@ -319,16 +367,20 @@ say highlighter "foo bar", "O", "*", :type<contains>, :ignorecase; # f*o**o* bar
 
 say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
 
+say highlighter "foo bar", "ar", "*", :type<ends-with>;        # foo b*ar*
+
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
 
 
-say columns "foo bar", "bar", :type<words>; # (5)
+say columns "foo bar", "bar", :type<words>;       # (5)
 
 say columns "foo bar", "O", :type<contains>, :ignorecase; # (2,3)
 
-say columns "foo bar", "fo", :type<starts-with>;      # (1)
+say columns "foo bar", "fo", :type<starts-with>;  # (1)
 
-say columns "foo bar", / b.r /;                       # (5)
+say columns "foo bar", "ar", :type<ends-with>;    # (6)
+
+say columns "foo bar", / b.r /;                   # (5)
 
 =end code
 
@@ -375,8 +427,9 @@ ignored.  Otherwise C<"contains"> is assumed.
 
 It indicates the type of search that should be performed.  Possible options
 are C<words> (look for the needle at word boundaries only), C<contains> (look
-for the needle at any position) and C<starts-with> (only look for the needle
-at the start of the string).
+for the needle at any position), C<starts-with> (only look for the needle
+at the start of the string) and C<ends-with> (only look for the needle at
+the end of the string).
 
 =item :ignorecase or :i
 

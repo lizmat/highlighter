@@ -17,16 +17,20 @@ say highlighter "foo bar", "O", "*", :type<contains>, :ignorecase; # f*o**o* bar
 
 say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
 
+say highlighter "foo bar", "ar", "*", :type<ends-with>;        # foo b*ar*
+
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
 
 
-say columns "foo bar", "bar", :type<words>; # (5)
+say columns "foo bar", "bar", :type<words>;       # (5)
 
 say columns "foo bar", "O", :type<contains>, :ignorecase; # (2,3)
 
-say columns "foo bar", "fo", :type<starts-with>;      # (1)
+say columns "foo bar", "fo", :type<starts-with>;  # (1)
 
-say columns "foo bar", / b.r /;                       # (5)
+say columns "foo bar", "ar", :type<ends-with>;    # (6)
+
+say columns "foo bar", / b.r /;                   # (5)
 ```
 
 DESCRIPTION
@@ -60,7 +64,7 @@ The following optional **named** arguments can also be specified:
 
 Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
 
-It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position) and `starts-with` (only look for the needle at the start of the string).
+It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string) and `ends-with` (only look for the needle at the end of the string).
 
   * :ignorecase or :i
 

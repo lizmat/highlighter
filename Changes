@@ -2,6 +2,9 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.12  2022-07-19T14:11:31+02:00
+    - Add support for "ends-with" as :type value
+
 0.0.11  2022-07-16T13:20:22+02:00
     - Fix issue with highlighting on regexes: this feels like
       some kind of dispatch issue in Rakudo, so work around it

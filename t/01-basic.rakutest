@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 16;
+plan 19;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -40,6 +40,18 @@ is highlighter($haystack, "FOO", "<em>","</em>",:type<starts-with>,:ignorecase),
 is highlighter($haystack, "zz", "<em>", "</em>", :type<starts-with>),
   $haystack,
   'did "zz" NOT get highlighted at beginning';
+
+is highlighter($haystack, "zop", "<em>", "</em>", :type<ends-with>),
+  "foo bar baz bar <em>zop</em>",
+  'did "foo" get highlighted at end';
+
+is highlighter($haystack, "ZOP", "<em>","</em>",:type<ends-with>,:ignorecase),
+  "foo bar baz bar <em>zop</em>",
+  'did "ZOP" get highlighted at end case-insensitively';
+
+is highlighter($haystack, "zz", "<em>", "</em>", :type<ends-with>),
+  $haystack,
+  'did "zz" NOT get highlighted at end';
 
 is highlighter($haystack, / << b.r >> /, "<em>", "</em>"),
   "foo <em>bar</em> baz <em>bar</em> zop",

@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 16;
+plan 19;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -40,6 +40,18 @@ is-deeply columns($haystack, "FOO", :type<starts-with>, :ignorecase),
 is-deeply columns($haystack, "zz", :type<starts-with>),
   (),
   'did "zz" NOT get highlighted at beginning';
+
+is-deeply columns($haystack, "zop", :type<ends-with>),
+  (17,),
+  'did "zop" get highlighted at end';
+
+is-deeply columns($haystack, "ZOP", :type<ends-with>, :ignorecase),
+  (17,),
+  'did "ZOP" get highlighted at end case-insensitively';
+
+is-deeply columns($haystack, "zz", :type<ends-with>),
+  (),
+  'did "zz" NOT get highlighted at end';
 
 is-deeply columns($haystack, / << b.r >> /),
   (5,13),

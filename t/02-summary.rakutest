@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 16;
+plan 19;
 
 my $haystack = "Currently the dynamic username coloring can choose colors that are very close to the background (light yellow on white, for instance). In addition, extremely dark or light colors are hard to distinguish from each other, as they effectively desaturate towards black or white respectively. (Desaturated colors with similar lightness are hard to distinguish in general, but I mention the light and dark cases because it's not always obvious that they are de facto desaturated.)";
 
@@ -38,17 +38,32 @@ is highlighter($haystack, "zz", "<em>", "</em>",
 is highlighter($haystack, "Currently", "<em>", "</em>",
   :type<starts-with>, :summary-if-larger-than(80)),
   '<em>Currently</em> the dynamic username coloring can choose colors that are very close...',
-  'did "foo" get highlighted at beginning';
+  'did "Currently" get highlighted at beginning';
 
 is highlighter($haystack, "CURRENTLY", "<em>","</em>",
   :type<starts-with>, :ignorecase, :summary-if-larger-than(80)),
   '<em>Currently</em> the dynamic username coloring can choose colors that are very close...',
-  'did "FOO" get highlighted at beginning case-insensitively';
+  'did "CURRENTLY" get highlighted at beginning case-insensitively';
 
 is highlighter($haystack, "zz", "<em>", "</em>",
   :type<starts-with>, :summary-if-larger-than(80)),
   'Currently the dynamic username coloring can choose colors that are very close...',
   'did "zz" NOT get highlighted at beginning';
+
+is highlighter($haystack, "desaturated.)", "<em>", "</em>",
+  :type<ends-with>, :summary-if-larger-than(80)),
+  "...on the light and dark cases because it's not always obvious that they are de <em>desaturated.)</em>",
+  'did "desaturated.)" get highlighted at end';
+
+is highlighter($haystack, "DESATURATED.)", "<em>","</em>",
+  :type<ends-with>, :ignorecase, :summary-if-larger-than(80)),
+  "...on the light and dark cases because it's not always obvious that they are de <em>desaturated.)</em>",
+  'did "DESATURATED.)" get highlighted at end case-insensitively';
+
+is highlighter($haystack, "zz", "<em>", "</em>",
+  :type<ends-with>, :summary-if-larger-than(80)),
+  'Currently the dynamic username coloring can choose colors that are very close...',
+  'did "zz" NOT get highlighted at end';
 
 is highlighter($haystack, / << d.rk >> /, "<em>", "</em>",
   :summary-if-larger-than(80)),
