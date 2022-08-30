@@ -2,6 +2,11 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.13  2022-08-30T05:38:45+02:00
+    - Add support for "matches" subroutine
+    - Add sponsor link
+    - Update copyright year
+
 0.0.12  2022-07-19T14:11:31+02:00
     - Add support for "ends-with" as :type value
 

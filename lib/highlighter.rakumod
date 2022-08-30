@@ -349,6 +349,92 @@ multi sub columns(
     }
 }
 
+proto sub matches(|) is export {*}
+multi sub matches(
+  Str:D  $haystack,
+  Str:D  $needle,
+  Str:D :$type where $_ eq 'words',
+        :i(:$ignorecase),
+        :m(:$ignoremark),
+--> Seq:D) {
+    my int $chars = $needle.chars;
+    find-all-words($haystack, $needle, :$ignorecase, :$ignoremark).map: {
+        $haystack.substr($_,$chars)
+    }
+}
+
+multi sub matches(
+  Str:D  $haystack,
+  Str:D  $needle,
+  Str:D :$type where $_ eq 'contains',
+        :i(:$ignorecase),
+        :m(:$ignoremark),
+--> Seq:D) {
+    my int $chars = $needle.chars;
+    $haystack.indices($needle, :$ignorecase, :$ignoremark).map: {
+        $haystack.substr($_,$chars)
+    }
+}
+
+multi sub matches(
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D :$type where $_ eq 'starts-with',
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+--> List:D) {
+    $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
+      ?? ($haystack.substr(0,$needle.chars),)
+      !! ()
+}
+
+multi sub matches(
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D :$type where $_ eq 'ends-with',
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+--> List:D) {
+    $haystack.ends-with($needle, :$ignorecase, :$ignoremark)
+      ?? ($haystack.substr(*-$needle.chars),)
+      !! ()
+}
+
+multi sub matches(
+  Str:D  $haystack,
+  Str:D  $needle,
+        :i(:$ignorecase),
+        :m(:$ignoremark),
+--> Seq:D) {
+    my int $chars = $needle.chars;
+    $haystack.indices($needle, :$ignorecase, :$ignoremark).map: {
+        $haystack.substr($_,$chars)
+    }
+}
+
+multi sub matches(
+       Str:D  $haystack,
+  Callable:D  $needle,
+             :i(:$ignorecase),
+             :m(:$ignoremark),
+) {
+
+    if Regex.ACCEPTS($needle) {
+        my int $c;
+        my $columns := IterationBuffer.CREATE;
+
+        while $haystack.match($needle, :$c) {
+            $columns.push: $/.Str;
+            $c = $/.pos;
+        }
+
+        $columns.List
+    }
+    else {
+        BEGIN ()
+    }
+}
+
 =begin pod
 
 =head1 NAME
@@ -382,6 +468,17 @@ say columns "foo bar", "ar", :type<ends-with>;    # (6)
 
 say columns "foo bar", / b.r /;                   # (5)
 
+
+say matches "foo bar", "bar", :type<words>;       # bar
+
+say matches "foo bar", "O", :type<contains>, :ignorecase; # o o
+
+say matches "foo bar", "fo", :type<starts-with>;  # fo
+
+say matches "foo bar", "ar", :type<ends-with>;    # ar
+
+say matches "foo bar", / b.r /;                   # bar
+
 =end code
 
 =head1 DESCRIPTION
@@ -393,10 +490,13 @@ match of a regular expression inside a string.
 It also exports a multi-dispatch subroutine C<columns> that returns the
 columns (1-based) at which highlighting should occur.
 
+And it also exports a multi-dispatch subroutine C<matches> that returns
+the actual matches inside the string.
+
 All candidates of the C<highlighter> subroutine take 4 positional
-parameters.  All candidates of the C<columns> subroutine take 2
-positional parameters (with the same meaning of the first 2 positional
-parameters of C<highlighter>):
+parameters.  All candidates of the C<columns> and C<matches> subroutine
+take 2 positional parameters (with the same meaning of the first 2
+positional parameters of C<highlighter>):
 
 =item haystack
 

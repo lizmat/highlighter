@@ -31,6 +31,17 @@ say columns "foo bar", "fo", :type<starts-with>;  # (1)
 say columns "foo bar", "ar", :type<ends-with>;    # (6)
 
 say columns "foo bar", / b.r /;                   # (5)
+
+
+say matches "foo bar", "bar", :type<words>;       # bar
+
+say matches "foo bar", "O", :type<contains>, :ignorecase; # o o
+
+say matches "foo bar", "fo", :type<starts-with>;  # fo
+
+say matches "foo bar", "ar", :type<ends-with>;    # ar
+
+say matches "foo bar", / b.r /;                   # bar
 ```
 
 DESCRIPTION
@@ -40,7 +51,9 @@ The highlighter distribution exports a multi-dispatch subroutine `highlighter` t
 
 It also exports a multi-dispatch subroutine `columns` that returns the columns (1-based) at which highlighting should occur.
 
-All candidates of the `highlighter` subroutine take 4 positional parameters. All candidates of the `columns` subroutine take 2 positional parameters (with the same meaning of the first 2 positional parameters of `highlighter`):
+And it also exports a multi-dispatch subroutine `matches` that returns the actual matches inside the string.
+
+All candidates of the `highlighter` subroutine take 4 positional parameters. All candidates of the `columns` and `matches` subroutine take 2 positional parameters (with the same meaning of the first 2 positional parameters of `highlighter`):
 
   * haystack
 

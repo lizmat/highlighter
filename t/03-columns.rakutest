@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 19;
+plan 18;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -76,9 +76,5 @@ is-deeply columns($haystack, *.contains("foo")),
 is-deeply columns($haystack, / <( ba \w )> /),
   (5,9,13),
   'did we get correct highlighting with capture markers';
-
-is-deeply columns($haystack, / <( ba \w )> /),
-  (5,9,13),
-  'did we get correct highlighting with :only';
 
 # vim: expandtab shiftwidth=4
