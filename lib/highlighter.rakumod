@@ -356,11 +356,11 @@ multi sub matches(
   Str:D :$type where $_ eq 'words',
         :i(:$ignorecase),
         :m(:$ignoremark),
---> Seq:D) {
+--> Slip:D) {
     my int $chars = $needle.chars;
-    find-all-words($haystack, $needle, :$ignorecase, :$ignoremark).map: {
+    find-all-words($haystack, $needle, :$ignorecase, :$ignoremark).map({
         $haystack.substr($_,$chars)
-    }
+    }).Slip
 }
 
 multi sub matches(
@@ -369,11 +369,11 @@ multi sub matches(
   Str:D :$type where $_ eq 'contains',
         :i(:$ignorecase),
         :m(:$ignoremark),
---> Seq:D) {
+--> Slip:D) {
     my int $chars = $needle.chars;
-    $haystack.indices($needle, :$ignorecase, :$ignoremark).map: {
+    $haystack.indices($needle, :$ignorecase, :$ignoremark).map({
         $haystack.substr($_,$chars)
-    }
+    }).Slip
 }
 
 multi sub matches(
@@ -382,10 +382,10 @@ multi sub matches(
    Str:D :$type where $_ eq 'starts-with',
          :i(:$ignorecase),
          :m(:$ignoremark),
---> List:D) {
+--> Slip:D) {
     $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
-      ?? ($haystack.substr(0,$needle.chars),)
-      !! ()
+      ?? slip($haystack.substr(0,$needle.chars))
+      !! Empty
 }
 
 multi sub matches(
@@ -394,10 +394,10 @@ multi sub matches(
    Str:D :$type where $_ eq 'ends-with',
          :i(:$ignorecase),
          :m(:$ignoremark),
---> List:D) {
+--> Slip:D) {
     $haystack.ends-with($needle, :$ignorecase, :$ignoremark)
-      ?? ($haystack.substr(*-$needle.chars),)
-      !! ()
+      ?? slip($haystack.substr(*-$needle.chars))
+      !! Empty
 }
 
 multi sub matches(
@@ -405,11 +405,11 @@ multi sub matches(
   Str:D  $needle,
         :i(:$ignorecase),
         :m(:$ignoremark),
---> Seq:D) {
+--> Slip:D) {
     my int $chars = $needle.chars;
-    $haystack.indices($needle, :$ignorecase, :$ignoremark).map: {
+    $haystack.indices($needle, :$ignorecase, :$ignoremark).map({
         $haystack.substr($_,$chars)
-    }
+    }).Slip
 }
 
 multi sub matches(
@@ -417,7 +417,7 @@ multi sub matches(
   Callable:D  $needle,
              :i(:$ignorecase),
              :m(:$ignoremark),
-) {
+--> Slip:D) {
 
     if Regex.ACCEPTS($needle) {
         my int $c;
@@ -428,10 +428,10 @@ multi sub matches(
             $c = $/.pos;
         }
 
-        $columns.List
+        $columns.Slip
     }
     else {
-        BEGIN ()
+        Empty
     }
 }
 
@@ -491,7 +491,7 @@ It also exports a multi-dispatch subroutine C<columns> that returns the
 columns (1-based) at which highlighting should occur.
 
 And it also exports a multi-dispatch subroutine C<matches> that returns
-the actual matches inside the string.
+the actual matches inside the string as a C<Slip>.
 
 All candidates of the C<highlighter> subroutine take 4 positional
 parameters.  All candidates of the C<columns> and C<matches> subroutine

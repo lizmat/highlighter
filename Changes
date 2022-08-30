@@ -2,6 +2,9 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.14  2022-08-30T19:41:04+02:00
+    - Make "matches" always return a Slip
+
 0.0.13  2022-08-30T05:38:45+02:00
     - Add support for "matches" subroutine
     - Add sponsor link

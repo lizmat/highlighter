@@ -51,7 +51,7 @@ The highlighter distribution exports a multi-dispatch subroutine `highlighter` t
 
 It also exports a multi-dispatch subroutine `columns` that returns the columns (1-based) at which highlighting should occur.
 
-And it also exports a multi-dispatch subroutine `matches` that returns the actual matches inside the string.
+And it also exports a multi-dispatch subroutine `matches` that returns the actual matches inside the string as a `Slip`.
 
 All candidates of the `highlighter` subroutine take 4 positional parameters. All candidates of the `columns` and `matches` subroutine take 2 positional parameters (with the same meaning of the first 2 positional parameters of `highlighter`):
 
