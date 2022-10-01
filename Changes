@@ -2,6 +2,9 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.15  2022-10-01T13:15:50+02:00
+    - Make "matches" return Empty for slips without elements
+
 0.0.14  2022-08-30T19:41:04+02:00
     - Make "matches" always return a Slip
 

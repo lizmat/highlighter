@@ -101,7 +101,7 @@ multi sub highlighter(
   Str:D  $needle,
   Str:D  $before,
   Str:D  $after = $before,
-  Str:D :$type where $_ eq 'contains',
+  Str:D :$type where !.defined || $_ eq 'contains',
         :$summary-if-larger-than,
         :i(:$ignorecase),
         :m(:$ignoremark),
@@ -360,7 +360,7 @@ multi sub matches(
     my int $chars = $needle.chars;
     find-all-words($haystack, $needle, :$ignorecase, :$ignoremark).map({
         $haystack.substr($_,$chars)
-    }).Slip
+    }).Slip // Empty
 }
 
 multi sub matches(
@@ -373,7 +373,7 @@ multi sub matches(
     my int $chars = $needle.chars;
     $haystack.indices($needle, :$ignorecase, :$ignoremark).map({
         $haystack.substr($_,$chars)
-    }).Slip
+    }).Slip // Empty
 }
 
 multi sub matches(
@@ -409,7 +409,7 @@ multi sub matches(
     my int $chars = $needle.chars;
     $haystack.indices($needle, :$ignorecase, :$ignoremark).map({
         $haystack.substr($_,$chars)
-    }).Slip
+    }).Slip // Empty
 }
 
 multi sub matches(
@@ -428,7 +428,7 @@ multi sub matches(
             $c = $/.pos;
         }
 
-        $columns.Slip
+        $columns.Slip // Empty
     }
     else {
         Empty
