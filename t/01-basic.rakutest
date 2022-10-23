@@ -1,84 +1,108 @@
 use Test;
 use highlighter;
 
-plan 19;
+plan 57;
 
 my $haystack = "foo bar baz bar zop";
 
-is highlighter($haystack, "bar", "<em>", "</em>", :type<words>),
+my sub test-hi($needle, $capture, $result, $description) is test-assertion {
+    is highlighter($haystack, $needle, |$capture),
+      $result,
+      $description;
+
+    is highlighter($haystack, ($needle, "frobnicate"), |$capture),
+      $result,
+      "$description (list first)";
+
+    is highlighter($haystack, ("frobnicate", $needle), |$capture),
+      $result,
+      "$description (list last)";
+}
+
+test-hi "bar", \("<em>", "</em>", :type<words>),
   "foo <em>bar</em> baz <em>bar</em> zop",
   'did "bar" get highlighted as a word';
 
-is highlighter($haystack, "BAR", "<em>", "</em>", :type<words>, :ignorecase),
+test-hi "BAR", \("<em>", "</em>", :type<words>, :ignorecase),
   "foo <em>bar</em> baz <em>bar</em> zop",
   'did "BAR" get highlighted as a word case-insensitively';
 
-is highlighter($haystack, "ar", "<em>", "</em>", :type<words>),
+test-hi "ar", \("<em>", "</em>", :type<words>),
   $haystack,
   'did "ar" NOT get highlighted as a word';
 
-is highlighter($haystack, "ba", "<em>", "</em>", :type<contains>),
+test-hi "ba", \("<em>", "</em>", :type<contains>),
   "foo <em>ba</em>r <em>ba</em>z <em>ba</em>r zop",
   'did "ba" get highlighted as a string';
 
-is highlighter($haystack, "BA", "<em>", "</em>", :type<contains>, :ignorecase),
+test-hi "BA", \("<em>", "</em>", :type<contains>, :ignorecase),
   "foo <em>ba</em>r <em>ba</em>z <em>ba</em>r zop",
   'did "BA" get highlighted as a string case-insensitively';
 
-is highlighter($haystack, "zz", "<em>", "</em>", :type<words>),
+test-hi "zz", \("<em>", "</em>", :type<words>),
   $haystack,
   'did "zz" NOT get highlighted as a string';
 
-is highlighter($haystack, "foo", "<em>", "</em>", :type<starts-with>),
+test-hi "foo", \("<em>", "</em>", :type<starts-with>),
   "<em>foo</em> bar baz bar zop",
   'did "foo" get highlighted at beginning';
 
-is highlighter($haystack, "FOO", "<em>","</em>",:type<starts-with>,:ignorecase),
+test-hi "FOO", \("<em>","</em>",:type<starts-with>,:ignorecase),
   "<em>foo</em> bar baz bar zop",
   'did "FOO" get highlighted at beginning case-insensitively';
 
-is highlighter($haystack, "zz", "<em>", "</em>", :type<starts-with>),
+test-hi "zz", \("<em>", "</em>", :type<starts-with>),
   $haystack,
   'did "zz" NOT get highlighted at beginning';
 
-is highlighter($haystack, "zop", "<em>", "</em>", :type<ends-with>),
+test-hi "zop", \("<em>", "</em>", :type<ends-with>),
   "foo bar baz bar <em>zop</em>",
   'did "foo" get highlighted at end';
 
-is highlighter($haystack, "ZOP", "<em>","</em>",:type<ends-with>,:ignorecase),
+test-hi "ZOP", \("<em>","</em>",:type<ends-with>,:ignorecase),
   "foo bar baz bar <em>zop</em>",
   'did "ZOP" get highlighted at end case-insensitively';
 
-is highlighter($haystack, "zz", "<em>", "</em>", :type<ends-with>),
+test-hi "zz", \("<em>", "</em>", :type<ends-with>),
   $haystack,
   'did "zz" NOT get highlighted at end';
 
-is highlighter($haystack, / << b.r >> /, "<em>", "</em>"),
+test-hi / << b.r >> /, \("<em>", "</em>"),
   "foo <em>bar</em> baz <em>bar</em> zop",
   'did "b.r" get highlighted as a match';
 
-is highlighter($haystack, rx:i/ B.R /, "<em>", "</em>"),
+test-hi rx:i/ B.R /, \("<em>", "</em>"),
   "foo <em>bar</em> baz <em>bar</em> zop",
   'did "B.R" get highlighted as a match case-insensitively';
 
-is highlighter($haystack, / zz /, "<em>", "</em>"),
+test-hi / zz /, \("<em>", "</em>"),
   $haystack,
   'did "zz" NOT get highlighted as a match';
 
-is highlighter($haystack, 'ar', "<em>", "</em>"),
+test-hi 'ar', \("<em>", "</em>"),
   "foo b<em>ar</em> baz b<em>ar</em> zop",
   'did "ar" get highlighted';
 
-is highlighter($haystack, *.contains("foo")),
-  $haystack,
-  'did we get no highlighting at all';
-
-is highlighter($haystack, / <( ba \w )> /, "<em>", "</em>"),
+test-hi / <( ba \w )> /, \("<em>", "</em>"),
   'foo <em>bar</em> <em>baz</em> <em>bar</em> zop',
   'did we get correct highlighting with capture markers';
 
-is highlighter($haystack, / <( ba \w )> /, "", "\n", :only),
+test-hi / <( ba \w )> /, \("", "\n", :only),
   "bar\nbaz\nbar\n",
   'did we get correct highlighting with :only';
+
+for *.contains("foo") -> $needle {
+    is highlighter($haystack, $needle),
+      $haystack,
+      'did we get no highlighting at all';
+
+    is highlighter($haystack, ($needle, { False })),
+      $haystack,
+      'did we get no highlighting at all (list first)';
+
+    is highlighter($haystack, ({ False }, $needle)),
+      $haystack,
+      'did we get no highlighting at all (list last)';
+}
 
 # vim: expandtab shiftwidth=4

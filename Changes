@@ -2,6 +2,11 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.16  2022-10-23T14:50:03+02:00
+    - Allow for a list of needles to "highlighter", "matches" and "columns"
+    - Rework the documentation so that each subroutine has its own section
+    - Add support for selective importing
+
 0.0.15  2022-10-01T13:15:50+02:00
     - Make "matches" return Empty for slips without elements
 

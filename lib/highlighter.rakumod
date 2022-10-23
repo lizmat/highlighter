@@ -120,10 +120,10 @@ multi sub highlighter(
    Str:D  $before,
    Str:D  $after = $before,
    Str:D :$type where $_ eq 'starts-with',
-         :$only,
          :$summary-if-larger-than,
          :i(:$ignorecase),
          :m(:$ignoremark),
+         :$only,
 --> Str:D) {
 
     if $haystack.starts-with($needle, :$ignorecase, :$ignoremark) {
@@ -155,10 +155,10 @@ multi sub highlighter(
    Str:D  $before,
    Str:D  $after = $before,
    Str:D :$type where $_ eq 'ends-with',
-         :$only,
          :$summary-if-larger-than,
          :i(:$ignorecase),
          :m(:$ignoremark),
+         :$only,
 --> Str:D) {
 
     if $haystack.ends-with($needle, :$ignorecase, :$ignoremark) {
@@ -272,6 +272,16 @@ multi sub highlighter(
     }
 }
 
+multi sub highlighter(Str:D $haystack, @needles, |c) {
+    for @needles {
+        if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
+            my $highlighted := highlighter($haystack, $_, |c);
+            return $highlighted if $highlighted ne $haystack;
+        }
+    }
+    $haystack
+}
+
 proto sub columns(|) is export {*}
 multi sub columns(
   Str:D  $haystack,
@@ -345,8 +355,20 @@ multi sub columns(
         $columns.List
     }
     else {
-        BEGIN (0,)
+        ()
     }
+}
+
+multi sub columns(Str:D $haystack, @needles, |c) {
+    for @needles {
+        if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
+            columns(
+              $haystack, $_, |c
+            ).iterator.push-all(my $ib := IterationBuffer.new);
+            return $ib.List if $ib.elems;
+        }
+    }
+    ()
 }
 
 proto sub matches(|) is export {*}
@@ -433,6 +455,34 @@ multi sub matches(
     else {
         Empty
     }
+}
+
+multi sub matches(Str:D $haystack, @needles, |c) {
+    for @needles {
+        if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
+            my $slip := matches($haystack, $_, |c);
+            return $slip unless $slip =:= Empty;
+        }
+    }
+    Empty
+}
+
+my sub EXPORT(*@names) {
+    Map.new: @names
+      ?? @names.map: {
+             if UNIT::{"&$_"}:exists {
+                 UNIT::{"&$_"}:p
+             }
+             else {
+                 my ($in,$out) = .split(':', 2);
+                 if $out && UNIT::{"&$in"} -> &code {
+                     Pair.new: "&$out", &code
+                 }
+             }
+         }
+      !! UNIT::.grep: {
+             .key.starts-with('&') && .key ne '&EXPORT'
+         }
 }
 
 # vim: expandtab shiftwidth=4

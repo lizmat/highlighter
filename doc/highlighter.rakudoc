@@ -12,6 +12,68 @@ use highlighter;
 
 say highlighter "foo bar", "bar", "<b>", "</b>", :type<words>; # foo <b>bar</b>
 
+say columns "foo bar", "bar", :type<words>;       # (5)
+
+say matches "foo bar", "O", :type<contains>, :ignorecase; # o o
+
+=end code
+
+=head1 DESCRIPTION
+
+The highlighter distribution exports three subroutines by default that
+are related to highlighting / indicating subsections of strings depending
+on the result of some type of search.
+
+The C<highlighter> subroutine can be called to highlight a word, a string
+or the match of a regular expression inside a string.
+
+The C<columns> subroutine returns the columns (1-based) at which highlighting
+should occur using the same search semantics as with C<highlighter>.
+
+The C<matches> returns the actual matches inside the string as a C<Slip>,
+using the same search semantics as with C<highlighter>.
+
+=head1 SELECTIVE IMPORTING
+
+=begin code :lang<raku>
+
+use highlighter <columns>;  # only export sub columns
+
+=end code
+
+By default all three subroutines are exported.  But you can limit this to
+the functions you actually need by specifying the name(s) in the C<use>
+statement.
+
+To prevent name collisions and/or import any subroutine with a more
+memorable name, one can use the "original-name:known-as" syntax.  A
+semi-colon in a specified string indicates the name by which the subroutine
+is known in this distribution, followed by the name with which it will be
+known in the lexical context in which the C<use> command is executed.
+
+=begin code :lang<raku>
+
+use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
+
+say the-columns "foo bar", "bar", :type<words>; # (5)
+
+=end code
+
+=head1 EXPORTED SUBROUTINES
+
+=head2 highlighter
+
+The C<highlighter> subroutine for a given string (the haystack), returns a
+string with highlighting codes for a word, a string or the match of a
+regular expression (the needle) with a given highlight string.  Returns the
+haystack If the needle could not be found.
+
+=begin code :lang<raku>
+
+use highlighter;
+
+say highlighter "foo bar", "bar", "<b>", "</b>", :type<words>; # foo <b>bar</b>
+
 say highlighter "foo bar", "O", "*", :type<contains>, :ignorecase; # f*o**o* bar
 
 say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
@@ -20,46 +82,9 @@ say highlighter "foo bar", "ar", "*", :type<ends-with>;        # foo b*ar*
 
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
 
-
-say columns "foo bar", "bar", :type<words>;       # (5)
-
-say columns "foo bar", "O", :type<contains>, :ignorecase; # (2,3)
-
-say columns "foo bar", "fo", :type<starts-with>;  # (1)
-
-say columns "foo bar", "ar", :type<ends-with>;    # (6)
-
-say columns "foo bar", / b.r /;                   # (5)
-
-
-say matches "foo bar", "bar", :type<words>;       # bar
-
-say matches "foo bar", "O", :type<contains>, :ignorecase; # o o
-
-say matches "foo bar", "fo", :type<starts-with>;  # fo
-
-say matches "foo bar", "ar", :type<ends-with>;    # ar
-
-say matches "foo bar", / b.r /;                   # bar
-
 =end code
 
-=head1 DESCRIPTION
-
-The highlighter distribution exports a multi-dispatch subroutine
-C<highlighter> that can be called to highlight a word, a string or the
-match of a regular expression inside a string.
-
-It also exports a multi-dispatch subroutine C<columns> that returns the
-columns (1-based) at which highlighting should occur.
-
-And it also exports a multi-dispatch subroutine C<matches> that returns
-the actual matches inside the string as a C<Slip>.
-
-All candidates of the C<highlighter> subroutine take 4 positional
-parameters.  All candidates of the C<columns> and C<matches> subroutine
-take 2 positional parameters (with the same meaning of the first 2
-positional parameters of C<highlighter>):
+The following positional parameters can be passed:
 
 =item haystack
 
@@ -68,20 +93,23 @@ This is the string in which things should be highlighted.
 =item needle
 
 This is either a string, or a regular expression indicating what should be
-highlighted.
+highlighted, or a list of strings / regular expressions.
+
+If a list was specified, then the C<highlighter> subroutine will be called
+for all elements in the list, and the first actually producing a highlighted
+string, will be returned.
 
 =item before
 
 This is the string that should be put B<before> the thing that should be
-highlighted.  Only applicable with C<highlighter>.
+highlighted.
 
 =item after
 
 Optional.  This is the string that should be put B<after> the thing that
-should be highlighted.  Defaults to the C<before> string>.  Only
-applicable with C<highlighter>.
+should be highlighted.  Defaults to the C<before> string>.
 
-The following optional B<named> arguments can also be specified:
+The following optional named arguments can also be specified:
 
 =item :type
 
@@ -110,15 +138,138 @@ characters only.
 
 Optional named argument.  Indicates that only the strings that were found
 should be returned (and not have anything inbetween, except for any
-C<before> and C<after> strings).  Defaults to C<False>.  Only applicable
-to C<highlighter>.
+C<before> and C<after> strings).  Defaults to C<False>.
 
 =item :summary-if-larger-than
 
 Optional named argument.  Indicates the number of characters a string
 must exceed to have the non-highlighted parts shortened to try to fit
 the indicated number of characters.  Defaults to C<Any>, indicate no
-summarizing should take place.  Only applicable to C<highlighter>.
+summarizing should take place.
+
+=head2 columns
+
+The C<columns> subroutine returns the columns (1-based) at which
+highlighting should occur, given a haystack, needle and optional named
+arguments.
+
+=begin code :lang<raku>
+
+use highlighter;
+
+say columns "foo bar", "bar", :type<words>;       # (5)
+
+say columns "foo bar", "O", :type<contains>, :ignorecase; # (2,3)
+
+say columns "foo bar", "fo", :type<starts-with>;  # (1)
+
+say columns "foo bar", "ar", :type<ends-with>;    # (6)
+
+say columns "foo bar", / b.r /;                   # (5)
+
+=end code
+
+The following positional parameters can be passed:
+
+=item haystack
+
+This is the string in which should be searched to determine the column
+positions.
+
+=item needle
+
+This is either a string, or a regular expression indicating what should be
+searched for to determine the column positions, or a list of strings and
+regular exprssions.
+
+If a list was specified, then the C<columns> subroutine will be called
+for all elements in the list, and the first actually producing a result,
+will be returned.
+
+The following named arguments can also be specified:
+
+=item :type
+
+Optional named argument.  If the needle is a regular expression, it is
+ignored.  Otherwise C<"contains"> is assumed.
+
+It indicates the type of search that should be performed.  Possible options
+are C<words> (look for the needle at word boundaries only), C<contains> (look
+for the needle at any position), C<starts-with> (only look for the needle
+at the start of the string) and C<ends-with> (only look for the needle at
+the end of the string).
+
+=item :ignorecase or :i
+
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done in a case
+insensitive manner.
+
+=item :ignoremark or :m
+
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done on the base
+characters only.
+
+=head2 matches
+
+The C<matches> subroutine returns the actual matches inside the string as
+a C<Slip> for the given haystack and needle and optional named arguments.
+
+=begin code :lang<raku>
+
+use highlighter;
+
+say matches "foo bar", "bar", :type<words>;       # bar
+
+say matches "foo bar", "O", :type<contains>, :ignorecase; # o o
+
+say matches "foo bar", "fo", :type<starts-with>;  # fo
+
+say matches "foo bar", "ar", :type<ends-with>;    # ar
+
+say matches "foo bar", / b.r /;                   # bar
+
+=end code
+
+=item haystack
+
+This is the string from which any matches should be returned.
+
+=item needle
+
+This is either a string, or a regular expression indicating what should be
+used to determine what a match is, or a list consisting of strings and
+regular expressions.
+
+If a list was specified, then the C<matches> subroutine will be called
+for all elements in the list, and the first actually producing a result,
+will be returned.
+
+The following named arguments can also be specified:
+
+=item :type
+
+Optional named argument.  If the needle is a regular expression, it is
+ignored.  Otherwise C<"contains"> is assumed.
+
+It indicates the type of search that should be performed.  Possible options
+are C<words> (look for the needle at word boundaries only), C<contains> (look
+for the needle at any position), C<starts-with> (only look for the needle
+at the start of the string) and C<ends-with> (only look for the needle at
+the end of the string).
+
+=item :ignorecase or :i
+
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done in a case
+insensitive manner.
+
+=item :ignoremark or :m
+
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done on the base
+characters only.
 
 =head1 NOTES
 

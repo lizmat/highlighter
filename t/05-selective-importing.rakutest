@@ -1,0 +1,27 @@
+use Test;
+
+my constant @subs = <highlighter columns matches>;
+
+plan @subs + 2;
+
+my $code;
+for @subs {
+    $code ~= qq:!c:to/CODE/;
+    {
+        use highlighter '$_';
+        ok MY::<&$_>:exists, "Did '$_' get exported?";
+    }
+    CODE
+}
+
+$code ~= qq:!c:to/CODE/;
+{
+    use highlighter <columns:the-columns>;
+    ok MY::<&the-columns>:exists, "Did 'the-columns' get exported?";
+    is MY::<&the-columns>.name, 'columns', 'Was the original name ok?';
+}
+CODE
+
+$code.EVAL;
+
+# vim: expandtab shiftwidth=4

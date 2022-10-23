@@ -1,79 +1,93 @@
 use Test;
 use highlighter;
 
-plan 18;
+plan 54;
 
 my $haystack = "foo bar baz bar zop";
 
-is-deeply matches($haystack, "bar", :type<words>).List,
+my sub test-ma($needle, $capture, \result, $description) is test-assertion {
+    is-deeply matches($haystack, $needle, |$capture).List,
+      result,
+      $description;
+
+    is-deeply matches($haystack, ($needle, "frobnicate"), |$capture).List,
+      result,
+      "$description (list first)";
+
+    is-deeply matches($haystack, ("frobnicate", $needle), |$capture).List,
+      result,
+      "$description (list last)";
+}
+
+test-ma "bar", \(:type<words>),
   <bar bar>,
   'did "bar" get matched multiple times';
 
-is-deeply matches($haystack, "BAR", :type<words>, :ignorecase).List,
+test-ma "BAR", \(:type<words>, :ignorecase),
   <bar bar>,
   'did "BAR" get matched word case-insensitively';
 
-is-deeply matches($haystack, "ar", :type<words>).List,
+test-ma "ar", \(:type<words>),
   (),
   'did "ar" NOT get matched as a word';
 
-is-deeply matches($haystack, "ba", :type<contains>).List,
+test-ma "ba", \(:type<contains>),
   <ba ba ba>,
   'did "ba" get matched as a string';
 
-is-deeply matches($haystack, "BA", :type<contains>, :ignorecase).List,
+test-ma "BA", \(:type<contains>, :ignorecase),
   <ba ba ba>,
   'did "BA" get matched as a string case-insensitively';
 
-is-deeply matches($haystack, "zz", :type<words>).List,
+test-ma "zz", \(:type<words>),
   (),
   'did "zz" NOT get matched as a string';
 
-is-deeply matches($haystack, "foo", :type<starts-with>).List,
+test-ma "foo", \(:type<starts-with>),
   ("foo",),
   'did "foo" get matched at beginning';
 
-is-deeply matches($haystack, "FOO", :type<starts-with>, :ignorecase).List,
+test-ma "FOO", \(:type<starts-with>, :ignorecase),
   ("foo",),
   'did "FOO" get matched at beginning case-insensitively';
 
-is-deeply matches($haystack, "zz", :type<starts-with>).List,
+test-ma "zz", \(:type<starts-with>),
   (),
   'did "zz" NOT get matched at beginning';
 
-is-deeply matches($haystack, "zop", :type<ends-with>).List,
+test-ma "zop", \(:type<ends-with>),
   ("zop",),
   'did "zop" get matched at end';
 
-is-deeply matches($haystack, "ZOP", :type<ends-with>, :ignorecase).List,
+test-ma "ZOP", \(:type<ends-with>, :ignorecase),
   ("zop",),
   'did "ZOP" get matched at end case-insensitively';
 
-is-deeply matches($haystack, "zz", :type<ends-with>).List,
+test-ma "zz", \(:type<ends-with>),
   (),
   'did "zz" NOT get matched at end';
 
-is-deeply matches($haystack, / << b.r >> /).List,
+test-ma / << b.r >> /, \(),
   <bar bar>,
   'did "b.r" get matched as a match';
 
-is-deeply matches($haystack, rx:i/ B.R /).List,
+test-ma rx:i/ B.R /, \(),
   <bar bar>,
   'did "B.R" get matched as a match case-insensitively';
 
-is-deeply matches($haystack, / zz /).List,
+test-ma / zz /, \(),
   (),
   'did "zz" NOT get matched as a match';
 
-is-deeply matches($haystack, 'ar').List,
+test-ma 'ar', \(),
   <ar ar>,
   'did "ar" get matched';
 
-is-deeply matches($haystack, *.contains("foo")).List,
+test-ma *.contains("foo"), \(),
   (),
   'did we get no highlighting at all';
 
-is-deeply matches($haystack, / <( ba \w )> /).List,
+test-ma / <( ba \w )> /, \(),
   <bar baz bar>,
   'did we get correct highlighting with capture markers';
 

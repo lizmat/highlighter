@@ -1,79 +1,93 @@
 use Test;
 use highlighter;
 
-plan 18;
+plan 54;
 
 my $haystack = "foo bar baz bar zop";
 
-is-deeply columns($haystack, "bar", :type<words>),
+my sub test-co($needle, $capture, \result, $description) is test-assertion {
+    is-deeply columns($haystack, $needle, |$capture),
+      result,
+      $description;
+
+    is-deeply columns($haystack, ($needle, "frobnicate"), |$capture),
+      result,
+      "$description (list first)";
+
+    is-deeply columns($haystack, ("frobnicate", $needle), |$capture),
+      result,
+      "$description (list last)";
+}
+
+test-co "bar", \(:type<words>),
   (5,13),
   'did "bar" get highlighted as a word';
 
-is-deeply columns($haystack, "BAR", :type<words>, :ignorecase),
+test-co "BAR", \(:type<words>, :ignorecase),
   (5,13),
   'did "BAR" get highlighted as a word case-insensitively';
 
-is-deeply columns($haystack, "ar", :type<words>),
+test-co "ar", \(:type<words>),
   (),
   'did "ar" NOT get highlighted as a word';
 
-is-deeply columns($haystack, "ba", :type<contains>),
+test-co "ba", \(:type<contains>),
   (5,9,13),
   'did "ba" get highlighted as a string';
 
-is-deeply columns($haystack, "BA", :type<contains>, :ignorecase),
+test-co "BA", \(:type<contains>, :ignorecase),
   (5,9,13),
   'did "BA" get highlighted as a string case-insensitively';
 
-is-deeply columns($haystack, "zz", :type<words>),
+test-co "zz", \(:type<words>),
   (),
   'did "zz" NOT get highlighted as a string';
 
-is-deeply columns($haystack, "foo", :type<starts-with>),
+test-co "foo", \(:type<starts-with>),
   (1,),
   'did "foo" get highlighted at beginning';
 
-is-deeply columns($haystack, "FOO", :type<starts-with>, :ignorecase),
+test-co "FOO", \(:type<starts-with>, :ignorecase),
   (1,),
   'did "FOO" get highlighted at beginning case-insensitively';
 
-is-deeply columns($haystack, "zz", :type<starts-with>),
+test-co "zz", \(:type<starts-with>),
   (),
   'did "zz" NOT get highlighted at beginning';
 
-is-deeply columns($haystack, "zop", :type<ends-with>),
+test-co "zop", \(:type<ends-with>),
   (17,),
   'did "zop" get highlighted at end';
 
-is-deeply columns($haystack, "ZOP", :type<ends-with>, :ignorecase),
+test-co "ZOP", \(:type<ends-with>, :ignorecase),
   (17,),
   'did "ZOP" get highlighted at end case-insensitively';
 
-is-deeply columns($haystack, "zz", :type<ends-with>),
+test-co "zz", \(:type<ends-with>),
   (),
   'did "zz" NOT get highlighted at end';
 
-is-deeply columns($haystack, / << b.r >> /),
+test-co / << b.r >> /, \(),
   (5,13),
   'did "b.r" get highlighted as a match';
 
-is-deeply columns($haystack, rx:i/ B.R /),
+test-co rx:i/ B.R /, \(),
   (5,13),
   'did "B.R" get highlighted as a match case-insensitively';
 
-is-deeply columns($haystack, / zz /),
+test-co / zz /, \(),
   (),
   'did "zz" NOT get highlighted as a match';
 
-is-deeply columns($haystack, 'ar'),
+test-co 'ar', \(),
   (6,14),
   'did "ar" get highlighted';
 
-is-deeply columns($haystack, *.contains("foo")),
-  (0,),
+test-co *.contains("foo"), \(),
+  (),
   'did we get no highlighting at all';
 
-is-deeply columns($haystack, / <( ba \w )> /),
+test-co / <( ba \w )> /, \(),
   (5,9,13),
   'did we get correct highlighting with capture markers';
 
