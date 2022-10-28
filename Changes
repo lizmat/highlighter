@@ -2,6 +2,9 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.17  2022-10-28T13:26:05+02:00
+    - Make "highlighter" try to highlight all patterns if multiple given
+
 0.0.16  2022-10-23T14:50:03+02:00
     - Allow for a list of needles to "highlighter", "matches" and "columns"
     - Rework the documentation so that each subroutine has its own section

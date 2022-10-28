@@ -273,13 +273,12 @@ multi sub highlighter(
 }
 
 multi sub highlighter(Str:D $haystack, @needles, |c) {
+    my $highlighted = $haystack;
     for @needles {
-        if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
-            my $highlighted := highlighter($haystack, $_, |c);
-            return $highlighted if $highlighted ne $haystack;
-        }
+        $highlighted = highlighter($highlighted, $_, |c)
+          if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_);
     }
-    $haystack
+    $highlighted
 }
 
 proto sub columns(|) is export {*}
