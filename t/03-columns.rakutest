@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 54;
+plan 63;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -21,67 +21,71 @@ my sub test-co($needle, $capture, \result, $description) is test-assertion {
 
 test-co "bar", \(:type<words>),
   (5,13),
-  'did "bar" get highlighted as a word';
+  'did "bar" produce columns as a word';
+
+test-co "bar" but Type<words>, \(),
+  (5,13),
+  'did "bar"<words> produce columns as a word';
 
 test-co "BAR", \(:type<words>, :ignorecase),
   (5,13),
-  'did "BAR" get highlighted as a word case-insensitively';
+  'did "BAR" produce columns as a word case-insensitively';
 
 test-co "ar", \(:type<words>),
   (),
-  'did "ar" NOT get highlighted as a word';
+  'did "ar" NOT produce columns as a word';
 
 test-co "ba", \(:type<contains>),
   (5,9,13),
-  'did "ba" get highlighted as a string';
+  'did "ba" produce columns as a string';
 
 test-co "BA", \(:type<contains>, :ignorecase),
   (5,9,13),
-  'did "BA" get highlighted as a string case-insensitively';
+  'did "BA" produce columns as a string case-insensitively';
 
 test-co "zz", \(:type<words>),
   (),
-  'did "zz" NOT get highlighted as a string';
+  'did "zz" NOT produce columns as a string';
 
 test-co "foo", \(:type<starts-with>),
   (1,),
-  'did "foo" get highlighted at beginning';
+  'did "foo" produce columns at beginning';
 
 test-co "FOO", \(:type<starts-with>, :ignorecase),
   (1,),
-  'did "FOO" get highlighted at beginning case-insensitively';
+  'did "FOO" produce columns at beginning case-insensitively';
 
 test-co "zz", \(:type<starts-with>),
   (),
-  'did "zz" NOT get highlighted at beginning';
+  'did "zz" NOT produce columns at beginning';
 
 test-co "zop", \(:type<ends-with>),
   (17,),
-  'did "zop" get highlighted at end';
+  'did "zop" produce columns at end';
 
 test-co "ZOP", \(:type<ends-with>, :ignorecase),
   (17,),
-  'did "ZOP" get highlighted at end case-insensitively';
+  'did "ZOP" produce columns at end case-insensitively';
 
 test-co "zz", \(:type<ends-with>),
   (),
-  'did "zz" NOT get highlighted at end';
+  'did "zz" NOT produce columns at end';
 
 test-co / << b.r >> /, \(),
   (5,13),
-  'did "b.r" get highlighted as a match';
+  'did "b.r" produce columns as a match';
 
 test-co rx:i/ B.R /, \(),
   (5,13),
-  'did "B.R" get highlighted as a match case-insensitively';
+  'did "B.R" produce columns as a match case-insensitively';
 
 test-co / zz /, \(),
   (),
-  'did "zz" NOT get highlighted as a match';
+  'did "zz" NOT produce columns as a match';
 
 test-co 'ar', \(),
   (6,14),
-  'did "ar" get highlighted';
+  'did "ar" produce columns';
 
 test-co *.contains("foo"), \(),
   (),
@@ -90,5 +94,13 @@ test-co *.contains("foo"), \(),
 test-co / <( ba \w )> /, \(),
   (5,9,13),
   'did we get correct highlighting with capture markers';
+
+test-co $haystack, \(:type<equal>),
+  (1,),
+  'did haystack produce columns when equal';
+
+test-co $haystack.uc, \(:type<equal>, :ignorecase),
+  (1,),
+  'did haystack produce columns when equal and ignorecase';
 
 # vim: expandtab shiftwidth=4

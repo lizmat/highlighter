@@ -2,6 +2,16 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.18  2022-10-30T12:21:39+01:00
+    - Make highlighter only highlight the first if multiple needles given,
+      as trying multiple makes life very difficult with completely free
+      strings before and after, and the :summmary-if-larger-than feature.
+    - Add support for "equal" type to "highlighter", "matches" and "columns"
+      mostly to allow easier interfacing with App::Rak
+    - Introduce the "Type" role that allows you to assign a type to a
+      string, so it can be passed around without needing to tag the type
+      along
+
 0.0.17  2022-10-28T13:26:05+02:00
     - Make "highlighter" try to highlight all patterns if multiple given
 

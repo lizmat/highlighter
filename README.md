@@ -13,15 +13,19 @@ use highlighter;
 
 say highlighter "foo bar", "bar", "<b>", "</b>", :type<words>; # foo <b>bar</b>
 
-say columns "foo bar", "bar", :type<words>;       # (5)
+say highlighter "foo bar", "bar" but Type<words>, "*";       # foo *bar*
 
-say matches "foo bar", "O", :type<contains>, :ignorecase; # o o
+say columns "foo bar", "bar", :type<words>;                    # (5)
+
+say matches "foo bar", "O", :type<contains>, :ignorecase;      # o o
 ```
 
 DESCRIPTION
 ===========
 
 The highlighter distribution exports three subroutines by default that are related to highlighting / indicating subsections of strings depending on the result of some type of search.
+
+It also exports a role `Type` by default, which allows one to associate the type of search wanted for a given string needle.
 
 The `highlighter` subroutine can be called to highlight a word, a string or the match of a regular expression inside a string.
 
@@ -36,14 +40,20 @@ SELECTIVE IMPORTING
 use highlighter <columns>;  # only export sub columns
 ```
 
-By default all three subroutines are exported. But you can limit this to the functions you actually need by specifying the name(s) in the `use` statement.
+By default all three subroutines and the `Type` role are exported. But you can limit this to the functions you actually need by specifying the name(s) in the `use` statement.
 
-To prevent name collisions and/or import any subroutine with a more memorable name, one can use the "original-name:known-as" syntax. A semi-colon in a specified string indicates the name by which the subroutine is known in this distribution, followed by the name with which it will be known in the lexical context in which the `use` command is executed.
+To prevent name collisions and/or import any subroutine (or role) with a more memorable name, one can use the "original-name:known-as" syntax. A semi-colon in a specified string indicates the name by which the subroutine is known in this distribution, followed by the name with which it will be known in the lexical context in which the `use` command is executed.
 
 ```raku
 use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
 
 say the-columns "foo bar", "bar", :type<words>; # (5)
+```
+
+```raku
+use highlighter <Type:Needle>;  # export "Type" as "Needle"
+
+say columns "foo bar", "bar" but Needle<words>; # (5)
 ```
 
 EXPORTED SUBROUTINES
@@ -55,7 +65,7 @@ highlighter
 The `highlighter` subroutine for a given string (the haystack), returns a string with highlighting codes for a word, a string or the match of a regular expression (the needle) with a given highlight string. Returns the haystack If the needle could not be found.
 
 ```raku
-use highlighter;
+use highlighter 'highlighter';
 
 say highlighter "foo bar", "bar", "<b>", "</b>", :type<words>; # foo <b>bar</b>
 
@@ -64,6 +74,8 @@ say highlighter "foo bar", "O", "*", :type<contains>, :ignorecase; # f*o**o* bar
 say highlighter "foo bar", "fo", "*", :type<starts-with>;      # *fo*o bar
 
 say highlighter "foo bar", "ar", "*", :type<ends-with>;        # foo b*ar*
+
+say highlighter "foo", "foo", "*", :type<equal>;               # *foo*
 
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
 ```
@@ -94,7 +106,7 @@ The following optional named arguments can also be specified:
 
 Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
 
-It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string) and `ends-with` (only look for the needle at the end of the string).
+It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string), `ends-with` (only look for the needle at the end of the string) and `equal` (if needle is the same size as the string and starts at the beginning of the string).
 
   * :ignorecase or :i
 
@@ -118,7 +130,7 @@ columns
 The `columns` subroutine returns the columns (1-based) at which highlighting should occur, given a haystack, needle and optional named arguments.
 
 ```raku
-use highlighter;
+use highlighter 'columns';
 
 say columns "foo bar", "bar", :type<words>;       # (5)
 
@@ -127,6 +139,8 @@ say columns "foo bar", "O", :type<contains>, :ignorecase; # (2,3)
 say columns "foo bar", "fo", :type<starts-with>;  # (1)
 
 say columns "foo bar", "ar", :type<ends-with>;    # (6)
+
+say columns "foo", "foo", :type<equal>;           # (1)
 
 say columns "foo bar", / b.r /;                   # (5)
 ```
@@ -149,7 +163,7 @@ The following named arguments can also be specified:
 
 Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
 
-It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string) and `ends-with` (only look for the needle at the end of the string).
+It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string), `ends-with` (only look for the needle at the end of the string) and `equal` (if needle is the same size as the string and starts at the beginning of the string).
 
   * :ignorecase or :i
 
@@ -165,7 +179,7 @@ matches
 The `matches` subroutine returns the actual matches inside the string as a `Slip` for the given haystack and needle and optional named arguments.
 
 ```raku
-use highlighter;
+use highlighter 'matches';
 
 say matches "foo bar", "bar", :type<words>;       # bar
 
@@ -174,6 +188,8 @@ say matches "foo bar", "O", :type<contains>, :ignorecase; # o o
 say matches "foo bar", "fo", :type<starts-with>;  # fo
 
 say matches "foo bar", "ar", :type<ends-with>;    # ar
+
+say matches "foo", "foo", :type<equal>;           # foo
 
 say matches "foo bar", / b.r /;                   # bar
 ```
@@ -194,7 +210,7 @@ The following named arguments can also be specified:
 
 Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
 
-It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string) and `ends-with` (only look for the needle at the end of the string).
+It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string), `ends-with` (only look for the needle at the end of the string) and `equal` (if needle is the same size as the string and starts at the beginning of the string).
 
   * :ignorecase or :i
 

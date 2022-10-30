@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 54;
+plan 63;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -22,6 +22,10 @@ my sub test-ma($needle, $capture, \result, $description) is test-assertion {
 test-ma "bar", \(:type<words>),
   <bar bar>,
   'did "bar" get matched multiple times';
+
+test-ma "bar" but Type<words>, \(),
+  <bar bar>,
+  'did "bar"<words> get matched multiple times';
 
 test-ma "BAR", \(:type<words>, :ignorecase),
   <bar bar>,
@@ -90,5 +94,13 @@ test-ma *.contains("foo"), \(),
 test-ma / <( ba \w )> /, \(),
   <bar baz bar>,
   'did we get correct highlighting with capture markers';
+
+test-ma $haystack, \(:type<equal>),
+  ($haystack,),
+  'was haystack found';
+
+test-ma $haystack.uc, \(:type<equal>, :ignorecase),
+  ($haystack,),
+  'was haystack found with ignorecase';
 
 # vim: expandtab shiftwidth=4

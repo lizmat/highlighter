@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 57;
+plan 69;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -22,6 +22,10 @@ my sub test-hi($needle, $capture, $result, $description) is test-assertion {
 test-hi "bar", \("<em>", "</em>", :type<words>),
   "foo <em>bar</em> baz <em>bar</em> zop",
   'did "bar" get highlighted as a word';
+
+test-hi "bar" but Type<words>, \("<em>", "</em>"),
+  "foo <em>bar</em> baz <em>bar</em> zop",
+  'did "bar"<words> get highlighted as a word';
 
 test-hi "BAR", \("<em>", "</em>", :type<words>, :ignorecase),
   "foo <em>bar</em> baz <em>bar</em> zop",
@@ -104,5 +108,18 @@ for *.contains("foo") -> $needle {
       $haystack,
       'did we get no highlighting at all (list last)';
 }
+
+test-hi $haystack, \("<em>", "</em>", :type<equal>),
+  '<em>' ~ $haystack ~ '</em>',
+  'did haystack get highlighted completely';
+
+test-hi $haystack.uc, \("<em>", "</em>", :type<equal>, :ignorecase),
+  '<em>' ~ $haystack ~ '</em>',
+  'did haystack.uc get highlighted completely';
+
+test-hi $haystack,
+  \("<em>", "</em>", :type<equal>, :summary-if-larger-than(10)),
+  '<em>foo bar...</em>',
+  'did haystack get highlighted completely';
 
 # vim: expandtab shiftwidth=4

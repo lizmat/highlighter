@@ -1,5 +1,19 @@
 use has-word:ver<0.0.3>:auth<zef:lizmat>;
 
+my constant @ok-types = <contains words starts-with ends-with equal>;
+my constant %ok-types = @ok-types.map: * => 1;
+
+my role Type {
+    has $.type;
+
+    method TWEAK() {
+        die qq:to/ERROR/ unless %ok-types{$!type};
+Type must be one of:
+  @ok-types.join("  \n")not: '$!type'
+ERROR
+    }
+}
+
 my sub highlight-from-indices(
      str $haystack,
      str $needle,
@@ -172,7 +186,7 @@ multi sub highlighter(
             ($summary-if-larger-than
               && $haystack-size > $summary-if-larger-than
               ?? '...' ~ $haystack.substr(
-                   $pos - $summary-if-larger-than-3, $summary-if-larger-than-3
+                   $pos - $summary-if-larger-than -3, $summary-if-larger-than -3
                  )
               !! $haystack.substr(0, $pos)
             ) ~ $before
@@ -186,20 +200,37 @@ multi sub highlighter(
 }
 
 multi sub highlighter(
-  Str:D  $haystack,
-  Str:D  $needle,
-  Str:D  $before,
-  Str:D  $after = $before,
-        :$summary-if-larger-than,
-        :i(:$ignorecase),
-        :m(:$ignoremark),
-        :$only,
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D  $before,
+   Str:D  $after = $before,
+   Str:D :$type where $_ eq 'equal',
+         :$summary-if-larger-than,
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+         :$only,
 --> Str:D) {
-    highlight-from-indices(
-      $haystack, $needle, $before, $after,
-      $ignorecase || $ignoremark, $only, $summary-if-larger-than,
-      $haystack.indices($needle, :$ignorecase, :$ignoremark)
-    )
+
+    my int $haystack-size = $haystack.chars;
+    my int $needle-size   = $needle.chars;
+
+    $haystack-size == $needle-size
+      && $haystack.index($needle, :$ignorecase, :$ignoremark).defined
+      ?? $before
+           ~ ($summary-if-larger-than && $haystack-size>$summary-if-larger-than
+               ?? $haystack.substr(0, $summary-if-larger-than - 3) ~ '...'
+               !! $haystack
+             )
+           ~ $after
+      !! nothing($haystack, $summary-if-larger-than)
+}
+
+multi sub highlighter(Str:D $haystack, Str:D $needle, |c --> Str:D) {
+    highlighter
+      $haystack,
+      $needle,
+      :type(Type.ACCEPTS($needle) ?? $needle.type !! 'contains'),
+      |c
 }
 
 multi sub highlighter(
@@ -272,13 +303,19 @@ multi sub highlighter(
     }
 }
 
-multi sub highlighter(Str:D $haystack, @needles, |c) {
+multi sub highlighter(Str:D $haystack, @needles, :$summary-if-larger-than, |c) {
     my $highlighted = $haystack;
     for @needles {
-        $highlighted = highlighter($highlighted, $_, |c)
-          if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_);
+        if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
+            my $highlighted := highlighter($haystack, $_, |c);
+            if $highlighted ne $haystack {
+                return $summary-if-larger-than
+                  ?? highlighter($haystack, $_, :$summary-if-larger-than, |c)
+                  !! $highlighted
+            }
+        }
     }
-    $highlighted
+    $haystack
 }
 
 proto sub columns(|) is export {*}
@@ -327,12 +364,30 @@ multi sub columns(
 }
 
 multi sub columns(
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D :$type where $_ eq 'equal',
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+--> List:D) {
+    $haystack.chars == $needle.chars
+      && $haystack.index($needle, :$ignorecase, :$ignoremark).defined
+      ?? BEGIN (1,)
+      !! ()
+}
+
+multi sub columns(
   Str:D  $haystack,
   Str:D  $needle,
         :i(:$ignorecase),
         :m(:$ignoremark),
 --> Seq:D) {
-    $haystack.indices($needle, :$ignorecase, :$ignoremark).map: * + 1
+    columns
+      $haystack,
+      $needle,
+      :type(Type.ACCEPTS($needle) ?? $needle.type !! 'contains'),
+      :$ignorecase,
+      :$ignoremark
 }
 
 multi sub columns(
@@ -422,15 +477,30 @@ multi sub matches(
 }
 
 multi sub matches(
+   Str:D  $haystack,
+   Str:D  $needle,
+   Str:D :$type where $_ eq 'equal',
+         :i(:$ignorecase),
+         :m(:$ignoremark),
+--> Slip:D) {
+    $haystack.chars == $needle.chars
+      && $haystack.index($needle, :$ignorecase, :$ignoremark).defined
+      ?? slip($haystack)
+      !! Empty
+}
+
+multi sub matches(
   Str:D  $haystack,
   Str:D  $needle,
         :i(:$ignorecase),
         :m(:$ignoremark),
 --> Slip:D) {
-    my int $chars = $needle.chars;
-    $haystack.indices($needle, :$ignorecase, :$ignoremark).map({
-        $haystack.substr($_,$chars)
-    }).Slip // Empty
+    matches
+      $haystack,
+      $needle,
+      :type(Type.ACCEPTS($needle) ?? $needle.type !! 'contains')
+      :$ignorecase
+      :$ignoremark
 }
 
 multi sub matches(
@@ -469,18 +539,27 @@ multi sub matches(Str:D $haystack, @needles, |c) {
 my sub EXPORT(*@names) {
     Map.new: @names
       ?? @names.map: {
-             if UNIT::{"&$_"}:exists {
+             if $_ eq 'Type' {
+                 Type => Type
+             }
+             elsif UNIT::{"&$_"}:exists {
                  UNIT::{"&$_"}:p
              }
              else {
                  my ($in,$out) = .split(':', 2);
-                 if $out && UNIT::{"&$in"} -> &code {
-                     Pair.new: "&$out", &code
+                 if $out {
+                     if $in eq 'Type' {
+                         Pair.new: $out, Type
+                     }
+                     elsif UNIT::{"&$in"} -> &code {
+                         Pair.new: "&$out", &code
+                     }
                  }
              }
          }
       !! UNIT::.grep: {
-             .key.starts-with('&') && .key ne '&EXPORT'
+             .key eq 'Type'
+               || (.key.starts-with('&') && .key ne '&EXPORT')
          }
 }
 

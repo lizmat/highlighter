@@ -2,7 +2,7 @@ use Test;
 
 my constant @subs = <highlighter columns matches>;
 
-plan @subs + 2;
+plan @subs + 6;
 
 my $code;
 for @subs {
@@ -19,6 +19,22 @@ $code ~= qq:!c:to/CODE/;
     use highlighter <columns:the-columns>;
     ok MY::<&the-columns>:exists, "Did 'the-columns' get exported?";
     is MY::<&the-columns>.name, 'columns', 'Was the original name ok?';
+}
+CODE
+
+$code ~= qq:!c:to/CODE/;
+{
+    use highlighter 'Type';
+    ok MY::<Type>:exists, "Did 'Type' get exported?";
+    is MY::<Type>.^name, 'Type', 'Was the name ok?';
+}
+CODE
+
+$code ~= qq:!c:to/CODE/;
+{
+    use highlighter 'Type:Frobnicate';
+    ok MY::<Frobnicate>:exists, "Did 'Frobnicate' get exported?";
+    is MY::<Frobnicate>.^name, 'Type', 'Was the original name ok?';
 }
 CODE
 
