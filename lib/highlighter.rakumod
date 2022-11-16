@@ -6,10 +6,11 @@ my constant %ok-types = @ok-types.map: * => 1;
 my role Type {
     has $.type;
 
-    method TWEAK() {
+    method TWEAK() is hidden-from-backtrace {
         die qq:to/ERROR/ unless %ok-types{$!type};
 Type must be one of:
-  @ok-types.join("  \n")not: '$!type'
+  @ok-types.join("\n  ")
+not: '$!type'
 ERROR
     }
 }
