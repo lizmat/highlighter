@@ -1,4 +1,4 @@
-[![Actions Status](https://github.com/lizmat/highlighter/workflows/test/badge.svg)](https://github.com/lizmat/highlighter/actions)
+[![Actions Status](https://github.com/lizmat/highlighter/actions/workflows/linux.yml/badge.svg)](https://github.com/lizmat/highlighter/actions) [![Actions Status](https://github.com/lizmat/highlighter/actions/workflows/macos.yml/badge.svg)](https://github.com/lizmat/highlighter/actions) [![Actions Status](https://github.com/lizmat/highlighter/actions/workflows/windows.yml/badge.svg)](https://github.com/lizmat/highlighter/actions)
 
 NAME
 ====
@@ -236,7 +236,7 @@ Elizabeth Mattijsen <liz@raku.rocks>
 COPYRIGHT AND LICENSE
 =====================
 
-Copyright 2021, 2022 Elizabeth Mattijsen
+Copyright 2021, 2022, 2024 Elizabeth Mattijsen
 
 Source can be located at: https://github.com/lizmat/highlighter . Comments and Pull Requests are welcome.
 

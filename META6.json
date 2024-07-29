@@ -6,7 +6,7 @@
   "build-depends": [
   ],
   "depends": [
-    "has-word:ver<0.0.3>:auth<zef:lizmat>"
+    "has-word:ver<0.0.4>:auth<zef:lizmat>"
   ],
   "description": "highlight something inside a string",
   "license": "Artistic-2.0",

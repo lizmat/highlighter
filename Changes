@@ -1,6 +1,9 @@
 Revision history for highlighter
 
 {{$NEXT}}
+    - Up dependency on "has-word"
+    - Update copyright year
+    - Add separate CI badges for each OS
 
 0.0.18  2022-10-30T12:21:39+01:00
     - Make highlighter only highlight the first if multiple needles given,

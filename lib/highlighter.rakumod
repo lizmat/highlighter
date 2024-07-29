@@ -1,4 +1,4 @@
-use has-word:ver<0.0.3>:auth<zef:lizmat>;
+use has-word:ver<0.0.4>:auth<zef:lizmat>;
 
 my constant @ok-types = <contains words starts-with ends-with equal>;
 my constant %ok-types = @ok-types.map: * => 1;
