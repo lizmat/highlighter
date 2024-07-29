@@ -1,6 +1,8 @@
 Revision history for highlighter
 
 {{$NEXT}}
+
+0.0.19  2024-07-29T15:06:16+02:00
     - Up dependency on "has-word"
     - Update copyright year
     - Add separate CI badges for each OS
