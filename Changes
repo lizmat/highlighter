@@ -2,8 +2,14 @@ Revision history for highlighter
 
 {{$NEXT}}
 
+0.0.20  2024-08-16T16:03:50+02:00
+    - Fix handling of multiple needes, especially in light of summarizing
+      and handling of type / value Pairs as needles
+    - Up dependency on "has-word"
+
 0.0.19  2024-07-29T15:06:16+02:00
     - Up dependency on "has-word"
+    - Add sponsor button
     - Update copyright year
     - Add separate CI badges for each OS
 

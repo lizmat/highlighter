@@ -1,3 +1,5 @@
+BEGIN %*ENV<RAKU_TEST_DIE_ON_FAIL> = 1;
+
 use Test;
 use highlighter;
 

@@ -1,4 +1,4 @@
-use has-word:ver<0.0.4>:auth<zef:lizmat>;
+use has-word:ver<0.0.6>:auth<zef:lizmat>;
 
 my constant @ok-types = <contains words starts-with ends-with equal>;
 my constant %ok-types = @ok-types.map: * => 1;
@@ -87,7 +87,9 @@ my sub highlight-from-indices(
 
 # nothing to highlight
 my sub nothing(str $haystack, $summary-if-larger-than) {
-    $summary-if-larger-than && chars($haystack) > $summary-if-larger-than
+    $summary-if-larger-than
+      && chars($haystack) > $summary-if-larger-than
+      && !$*SKIP-NOTHING
       ?? substr($haystack, 0, $summary-if-larger-than - 3) ~ '...'
       !! $haystack
 }
@@ -304,19 +306,35 @@ multi sub highlighter(
     }
 }
 
-multi sub highlighter(Str:D $haystack, @needles, :$summary-if-larger-than, |c) {
+multi sub highlighter(
+  Str:D $haystack, @needles, :$summary-if-larger-than is copy, |c
+) {
+
+    # Make sure no summarizing if no highlighting was done
+    my $*SKIP-NOTHING = True;
+
     my $highlighted = $haystack;
     for @needles {
-        if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
-            my $highlighted := highlighter($haystack, $_, |c);
-            if $highlighted ne $haystack {
-                return $summary-if-larger-than
-                  ?? highlighter($haystack, $_, :$summary-if-larger-than, |c)
-                  !! $highlighted
-            }
+        if Pair.ACCEPTS($_) {
+            $highlighted := highlighter(
+              $highlighted, .value, :type(.key), :$summary-if-larger-than, |c
+            );
         }
+        elsif Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
+            $highlighted := highlighter(
+              $highlighted, $_, :$summary-if-larger-than, |c
+            );
+        }
+        $summary-if-larger-than = Any if $highlighted ne $haystack;
     }
-    $haystack
+
+    if $highlighted eq $haystack {
+        $*SKIP-NOTHING = False;
+        nothing($highlighted, $summary-if-larger-than)
+    }
+    else {
+        $highlighted
+    }
 }
 
 proto sub columns(|) is export {*}
