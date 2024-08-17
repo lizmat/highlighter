@@ -3,7 +3,7 @@ BEGIN %*ENV<RAKU_TEST_DIE_ON_FAIL> = 1;
 use Test;
 use highlighter;
 
-plan 69;
+plan 81;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -85,9 +85,17 @@ test-hi / zz /, \("<em>", "</em>"),
   $haystack,
   'did "zz" NOT get highlighted as a match';
 
-test-hi 'ar', \("<em>", "</em>"),
-  "foo b<em>ar</em> baz b<em>ar</em> zop",
-  'did "ar" get highlighted';
+for
+  \("<em>", "</em>"),
+  \("<em>", "</em>", :smartcase),
+  \("<em>", "</em>", :ignorecase),
+  \("<em>", "</em>", :smartmark),
+  \("<em>", "</em>", :ignoremark)
+-> $capture {
+    test-hi 'ar', $capture,
+      "foo b<em>ar</em> baz b<em>ar</em> zop",
+      "did 'ar' get highlighted $capture.keys()";
+}
 
 test-hi / <( ba \w )> /, \("<em>", "</em>"),
   'foo <em>bar</em> <em>baz</em> <em>bar</em> zop',

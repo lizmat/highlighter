@@ -33,28 +33,37 @@ The `columns` subroutine returns the columns (1-based) at which highlighting sho
 
 The `matches` returns the actual matches inside the string as a `Slip`, using the same search semantics as with `highlighter`.
 
-SELECTIVE IMPORTING
-===================
+NAMED ARGUMENTS
+===============
 
-```raku
-use highlighter <columns>;  # only export sub columns
-```
+The following named arguments may be specified with all of the subroutines in this distribution.
 
-By default all three subroutines and the `Type` role are exported. But you can limit this to the functions you actually need by specifying the name(s) in the `use` statement.
+:type
+-----
 
-To prevent name collisions and/or import any subroutine (or role) with a more memorable name, one can use the "original-name:known-as" syntax. A semi-colon in a specified string indicates the name by which the subroutine is known in this distribution, followed by the name with which it will be known in the lexical context in which the `use` command is executed.
+Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
 
-```raku
-use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
+It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string), `ends-with` (only look for the needle at the end of the string) and `equal` (if needle is the same size as the string and starts at the beginning of the string).
 
-say the-columns "foo bar", "bar", :type<words>; # (5)
-```
+:ignorecase or :i
+-----------------
 
-```raku
-use highlighter <Type:Needle>;  # export "Type" as "Needle"
+Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done in a case insensitive manner.
 
-say columns "foo bar", "bar" but Needle<words>; # (5)
-```
+:smartcase
+----------
+
+Optional named argument. If the second positional argument is a string, and it does **not** contain any uppercase characters, then this indicates that any searches should be done in a case insensitive manner.
+
+:ignoremark or :m
+-----------------
+
+Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done on the base characters only.
+
+:smartmark
+----------
+
+Optional named argument. If the second positional argument is a string, and it does **not** contain any accented characters, then this indicates then this indicates that any searches should be done on the base characters only.
 
 EXPORTED SUBROUTINES
 ====================
@@ -100,21 +109,7 @@ This is the string that should be put **before** the thing that should be highli
 
 Optional. This is the string that should be put **after** the thing that should be highlighted. Defaults to the `before` string>.
 
-The following optional named arguments can also be specified:
-
-  * :type
-
-Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
-
-It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string), `ends-with` (only look for the needle at the end of the string) and `equal` (if needle is the same size as the string and starts at the beginning of the string).
-
-  * :ignorecase or :i
-
-Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done in a case insensitive manner.
-
-  * :ignoremark or :m
-
-Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done on the base characters only.
+The following additional named arguments may also be specified:
 
   * :only
 
@@ -157,22 +152,6 @@ This is either a string, or a regular expression indicating what should be searc
 
 If a list was specified, then the `columns` subroutine will be called for all elements in the list, and the first actually producing a result, will be returned.
 
-The following named arguments can also be specified:
-
-  * :type
-
-Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
-
-It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string), `ends-with` (only look for the needle at the end of the string) and `equal` (if needle is the same size as the string and starts at the beginning of the string).
-
-  * :ignorecase or :i
-
-Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done in a case insensitive manner.
-
-  * :ignoremark or :m
-
-Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done on the base characters only.
-
 matches
 -------
 
@@ -204,21 +183,28 @@ This is either a string, or a regular expression indicating what should be used 
 
 If a list was specified, then the `matches` subroutine will be called for all elements in the list, and the first actually producing a result, will be returned.
 
-The following named arguments can also be specified:
+SELECTIVE IMPORTING
+===================
 
-  * :type
+```raku
+use highlighter <columns>;  # only export sub columns
+```
 
-Optional named argument. If the needle is a regular expression, it is ignored. Otherwise `"contains"` is assumed.
+By default all three subroutines and the `Type` role are exported. But you can limit this to the functions you actually need by specifying the name(s) in the `use` statement.
 
-It indicates the type of search that should be performed. Possible options are `words` (look for the needle at word boundaries only), `contains` (look for the needle at any position), `starts-with` (only look for the needle at the start of the string), `ends-with` (only look for the needle at the end of the string) and `equal` (if needle is the same size as the string and starts at the beginning of the string).
+To prevent name collisions and/or import any subroutine (or role) with a more memorable name, one can use the "original-name:known-as" syntax. A semi-colon in a specified string indicates the name by which the subroutine is known in this distribution, followed by the name with which it will be known in the lexical context in which the `use` command is executed.
 
-  * :ignorecase or :i
+```raku
+use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
 
-Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done in a case insensitive manner.
+say the-columns "foo bar", "bar", :type<words>; # (5)
+```
 
-  * :ignoremark or :m
+```raku
+use highlighter <Type:Needle>;  # export "Type" as "Needle"
 
-Optional named argument. If the second positional argument is a string, then this indicates whether any searches should be done on the base characters only.
+say columns "foo bar", "bar" but Needle<words>; # (5)
+```
 
 NOTES
 =====

@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 63;
+plan 75;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -47,9 +47,17 @@ test-co "zz", \(:type<words>),
   (),
   'did "zz" NOT produce columns as a string';
 
-test-co "foo", \(:type<starts-with>),
-  (1,),
-  'did "foo" produce columns at beginning';
+for
+  \(:type<starts-with>),
+  \(:type<starts-with>, :smartcase),
+  \(:type<starts-with>, :ignorecase),
+  \(:type<starts-with>, :smartmark),
+  \(:type<starts-with>, :ignoremark)
+-> $capture {
+    test-co "foo", $capture,
+      (1,),
+      "did 'foo' produce columns at beginning $capture.keys()";
+}
 
 test-co "FOO", \(:type<starts-with>, :ignorecase),
   (1,),

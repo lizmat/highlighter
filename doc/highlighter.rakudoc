@@ -38,39 +38,47 @@ should occur using the same search semantics as with C<highlighter>.
 The C<matches> returns the actual matches inside the string as a C<Slip>,
 using the same search semantics as with C<highlighter>.
 
-=head1 SELECTIVE IMPORTING
+=head1 NAMED ARGUMENTS
 
-=begin code :lang<raku>
+The following named arguments may be specified with all of the subroutines
+in this distribution.
 
-use highlighter <columns>;  # only export sub columns
+=head2 :type
 
-=end code
+Optional named argument.  If the needle is a regular expression, it is
+ignored.  Otherwise C<"contains"> is assumed.
 
-By default all three subroutines and the C<Type> role are exported.  But
-you can limit this to the functions you actually need by specifying the
-name(s) in the C<use> statement.
+It indicates the type of search that should be performed.  Possible options
+are C<words> (look for the needle at word boundaries only), C<contains> (look
+for the needle at any position), C<starts-with> (only look for the needle
+at the start of the string), C<ends-with> (only look for the needle at
+the end of the string) and C<equal> (if needle is the same size as the string
+and starts at the beginning of the string).
 
-To prevent name collisions and/or import any subroutine (or role) with a
-more memorable name, one can use the "original-name:known-as" syntax.  A
-semi-colon in a specified string indicates the name by which the subroutine
-is known in this distribution, followed by the name with which it will be
-known in the lexical context in which the C<use> command is executed.
+=head2 :ignorecase or :i
 
-=begin code :lang<raku>
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done in a case
+insensitive manner.
 
-use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
+=head2 :smartcase
 
-say the-columns "foo bar", "bar", :type<words>; # (5)
+Optional named argument.  If the second positional argument is a string,
+and it does B<not> contain any uppercase characters, then this indicates
+that any searches should be done in a case insensitive manner.
 
-=end code
+=head2 :ignoremark or :m
 
-=begin code :lang<raku>
+Optional named argument.  If the second positional argument is a string,
+then this indicates whether any searches should be done on the base
+characters only.
 
-use highlighter <Type:Needle>;  # export "Type" as "Needle"
+=head2 :smartmark
 
-say columns "foo bar", "bar" but Needle<words>; # (5)
-
-=end code
+Optional named argument.  If the second positional argument is a string,
+and it does B<not> contain any accented characters, then this indicates
+then this indicates that any searches should be done on the base characters
+only.
 
 =head1 EXPORTED SUBROUTINES
 
@@ -124,31 +132,7 @@ highlighted.
 Optional.  This is the string that should be put B<after> the thing that
 should be highlighted.  Defaults to the C<before> string>.
 
-The following optional named arguments can also be specified:
-
-=item :type
-
-Optional named argument.  If the needle is a regular expression, it is
-ignored.  Otherwise C<"contains"> is assumed.
-
-It indicates the type of search that should be performed.  Possible options
-are C<words> (look for the needle at word boundaries only), C<contains> (look
-for the needle at any position), C<starts-with> (only look for the needle
-at the start of the string), C<ends-with> (only look for the needle at
-the end of the string) and C<equal> (if needle is the same size as the string
-and starts at the beginning of the string).
-
-=item :ignorecase or :i
-
-Optional named argument.  If the second positional argument is a string,
-then this indicates whether any searches should be done in a case
-insensitive manner.
-
-=item :ignoremark or :m
-
-Optional named argument.  If the second positional argument is a string,
-then this indicates whether any searches should be done on the base
-characters only.
+The following additional named arguments may also be specified:
 
 =item :only
 
@@ -204,32 +188,6 @@ If a list was specified, then the C<columns> subroutine will be called
 for all elements in the list, and the first actually producing a result,
 will be returned.
 
-The following named arguments can also be specified:
-
-=item :type
-
-Optional named argument.  If the needle is a regular expression, it is
-ignored.  Otherwise C<"contains"> is assumed.
-
-It indicates the type of search that should be performed.  Possible options
-are C<words> (look for the needle at word boundaries only), C<contains> (look
-for the needle at any position), C<starts-with> (only look for the needle
-at the start of the string), C<ends-with> (only look for the needle at
-the end of the string) and C<equal> (if needle is the same size as the string
-and starts at the beginning of the string).
-
-=item :ignorecase or :i
-
-Optional named argument.  If the second positional argument is a string,
-then this indicates whether any searches should be done in a case
-insensitive manner.
-
-=item :ignoremark or :m
-
-Optional named argument.  If the second positional argument is a string,
-then this indicates whether any searches should be done on the base
-characters only.
-
 =head2 matches
 
 The C<matches> subroutine returns the actual matches inside the string as
@@ -267,31 +225,39 @@ If a list was specified, then the C<matches> subroutine will be called
 for all elements in the list, and the first actually producing a result,
 will be returned.
 
-The following named arguments can also be specified:
+=head1 SELECTIVE IMPORTING
 
-=item :type
+=begin code :lang<raku>
 
-Optional named argument.  If the needle is a regular expression, it is
-ignored.  Otherwise C<"contains"> is assumed.
+use highlighter <columns>;  # only export sub columns
 
-It indicates the type of search that should be performed.  Possible options
-are C<words> (look for the needle at word boundaries only), C<contains> (look
-for the needle at any position), C<starts-with> (only look for the needle
-at the start of the string), C<ends-with> (only look for the needle at
-the end of the string) and C<equal> (if needle is the same size as the string
-and starts at the beginning of the string).
+=end code
 
-=item :ignorecase or :i
+By default all three subroutines and the C<Type> role are exported.  But
+you can limit this to the functions you actually need by specifying the
+name(s) in the C<use> statement.
 
-Optional named argument.  If the second positional argument is a string,
-then this indicates whether any searches should be done in a case
-insensitive manner.
+To prevent name collisions and/or import any subroutine (or role) with a
+more memorable name, one can use the "original-name:known-as" syntax.  A
+semi-colon in a specified string indicates the name by which the subroutine
+is known in this distribution, followed by the name with which it will be
+known in the lexical context in which the C<use> command is executed.
 
-=item :ignoremark or :m
+=begin code :lang<raku>
 
-Optional named argument.  If the second positional argument is a string,
-then this indicates whether any searches should be done on the base
-characters only.
+use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
+
+say the-columns "foo bar", "bar", :type<words>; # (5)
+
+=end code
+
+=begin code :lang<raku>
+
+use highlighter <Type:Needle>;  # export "Type" as "Needle"
+
+say columns "foo bar", "bar" but Needle<words>; # (5)
+
+=end code
 
 =head1 NOTES
 

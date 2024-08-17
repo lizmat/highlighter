@@ -1,7 +1,7 @@
 use Test;
 use highlighter;
 
-plan 63;
+plan 75;
 
 my $haystack = "foo bar baz bar zop";
 
@@ -47,9 +47,17 @@ test-ma "zz", \(:type<words>),
   (),
   'did "zz" NOT get matched as a string';
 
-test-ma "foo", \(:type<starts-with>),
-  ("foo",),
-  'did "foo" get matched at beginning';
+for
+  \(:type<starts-with>),
+  \(:type<starts-with>, :smartcase),
+  \(:type<starts-with>, :ignorecase),
+  \(:type<starts-with>, :smartmark),
+  \(:type<starts-with>, :ignoremark)
+-> $capture {
+    test-ma "foo", $capture,
+      ("foo",),
+      "did 'foo' get matched at beginning $capture.keys()";
+}
 
 test-ma "FOO", \(:type<starts-with>, :ignorecase),
   ("foo",),

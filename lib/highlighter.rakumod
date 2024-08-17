@@ -1,4 +1,10 @@
-use has-word:ver<0.0.6>:auth<zef:lizmat>;
+#-------------------------------------------------------------------------------
+# Compile time setup
+
+use has-word:ver<0.0.6>:auth<zef:lizmat>;   # has-word
+use String::Utils:ver<0.0.25+>:auth<zef:lizmat> <
+  has-marks is-lowercase
+>;
 
 my constant @ok-types = <contains words starts-with ends-with equal>;
 my constant %ok-types = @ok-types.map: * => 1;
@@ -14,6 +20,9 @@ not: '$!type'
 ERROR
     }
 }
+
+#------------------------------------------------------------------------------0
+# Helper subroutines
 
 my sub highlight-from-indices(
      str $haystack,
@@ -94,7 +103,30 @@ my sub nothing(str $haystack, $summary-if-larger-than) {
       !! $haystack
 }
 
+#-------------------------------------------------------------------------------
+# "highlighter" logic
+
 proto sub highlighter(|) is export {*}
+
+# Pre-processing "smartcase"
+multi sub highlighter(
+  Str:D $haystack, Str:D $needle, Str:D $before, Str:D $after = $before,
+  :$ignorecase, :$smartcase!, *%_
+--> Str:D) {
+    %_<ignorecase> := $ignorecase || ($smartcase && is-lowercase($needle));
+    highlighter($haystack, $needle, $before, $after, |%_)
+}
+
+# Pre-processing "smartmark"
+multi sub highlighter(
+  Str:D $haystack, Str:D $needle, Str:D $before, Str:D $after = $before,
+  :$ignoremark, :$smartmark!, *%_
+--> Str:D) {
+    %_<ignoremark> = $ignoremark || ($smartmark && !has-marks($needle));
+    highlighter($haystack, $needle, $before, $after, |%_)
+}
+
+# Handle "words" highlighting
 multi sub highlighter(
   Str:D  $haystack,
   Str:D  $needle,
@@ -113,6 +145,7 @@ multi sub highlighter(
     )
 }
 
+# Handle default and "contains" highlighting
 multi sub highlighter(
   Str:D  $haystack,
   Str:D  $needle,
@@ -131,6 +164,7 @@ multi sub highlighter(
     )
 }
 
+# Handle "starts-with" highlighting
 multi sub highlighter(
    Str:D  $haystack,
    Str:D  $needle,
@@ -166,6 +200,7 @@ multi sub highlighter(
     }
 }
 
+# Handle "ends-with" highlighting
 multi sub highlighter(
    Str:D  $haystack,
    Str:D  $needle,
@@ -202,6 +237,7 @@ multi sub highlighter(
     }
 }
 
+# Handle "equal" highlighting
 multi sub highlighter(
    Str:D  $haystack,
    Str:D  $needle,
@@ -228,6 +264,7 @@ multi sub highlighter(
       !! nothing($haystack, $summary-if-larger-than)
 }
 
+# Pre-process mixed in typing
 multi sub highlighter(Str:D $haystack, Str:D $needle, |c --> Str:D) {
     highlighter
       $haystack,
@@ -236,6 +273,7 @@ multi sub highlighter(Str:D $haystack, Str:D $needle, |c --> Str:D) {
       |c
 }
 
+# Handle Callable needle (aka Regex)
 multi sub highlighter(
        Str:D  $haystack,
   Callable:D  $needle,
@@ -306,6 +344,7 @@ multi sub highlighter(
     }
 }
 
+# Pre-process multiple needles
 multi sub highlighter(
   Str:D $haystack, @needles, :$summary-if-larger-than is copy, |c
 ) {
@@ -337,7 +376,28 @@ multi sub highlighter(
     }
 }
 
+#-------------------------------------------------------------------------------
+# "columns" logic
+
 proto sub columns(|) is export {*}
+
+# Pre-processing "smartcase"
+multi sub columns(
+  Str:D $haystack, Str:D $needle, :$ignorecase, :$smartcase!, *%_
+) {
+    %_<ignorecase> := $ignorecase || ($smartcase && is-lowercase($needle));
+    columns($haystack, $needle, |%_)
+}
+
+# Pre-processing "smartmark"
+multi sub columns(
+  Str:D $haystack, Str:D $needle, :$ignoremark, :$smartmark!, *%_
+) {
+    %_<ignoremark> = $ignoremark || ($smartmark && !has-marks($needle));
+    columns($haystack, $needle, |%_)
+}
+
+# Handle "words" columns
 multi sub columns(
   Str:D  $haystack,
   Str:D  $needle,
@@ -348,6 +408,7 @@ multi sub columns(
     find-all-words($haystack, $needle, :$ignorecase, :$ignoremark).map: * + 1
 }
 
+# Handle "contains" columns
 multi sub columns(
   Str:D  $haystack,
   Str:D  $needle,
@@ -358,6 +419,7 @@ multi sub columns(
     $haystack.indices($needle, :$ignorecase, :$ignoremark).map: * + 1
 }
 
+# Handle "starts-with" columns
 multi sub columns(
    Str:D  $haystack,
    Str:D  $needle,
@@ -370,6 +432,7 @@ multi sub columns(
       !! ()
 }
 
+# Handle "ends-with" columns
 multi sub columns(
    Str:D  $haystack,
    Str:D  $needle,
@@ -382,6 +445,7 @@ multi sub columns(
       !! ()
 }
 
+# Handle "equal" columns
 multi sub columns(
    Str:D  $haystack,
    Str:D  $needle,
@@ -395,20 +459,16 @@ multi sub columns(
       !! ()
 }
 
-multi sub columns(
-  Str:D  $haystack,
-  Str:D  $needle,
-        :i(:$ignorecase),
-        :m(:$ignoremark),
---> Seq:D) {
+# Pre-process mixed-in typing columns
+multi sub columns(Str:D  $haystack, Str:D  $needle, *%_ --> Seq:D) {
     columns
       $haystack,
       $needle,
       :type(Type.ACCEPTS($needle) ?? $needle.type !! 'contains'),
-      :$ignorecase,
-      :$ignoremark
+      |%_
 }
 
+# Handle Callable columns (aka Regex)
 multi sub columns(
        Str:D  $haystack,
   Callable:D  $needle,
@@ -432,6 +492,7 @@ multi sub columns(
     }
 }
 
+# Handle multiple columns
 multi sub columns(Str:D $haystack, @needles, |c) {
     for @needles {
         if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
@@ -444,7 +505,28 @@ multi sub columns(Str:D $haystack, @needles, |c) {
     ()
 }
 
+#-------------------------------------------------------------------------------
+# "matches" logic
+
 proto sub matches(|) is export {*}
+
+# Pre-processing "smartcase"
+multi sub matches(
+  Str:D $haystack, Str:D $needle, :$ignorecase, :$smartcase!, *%_
+--> Slip:D) {
+    %_<ignorecase> := $ignorecase || ($smartcase && is-lowercase($needle));
+    matches($haystack, $needle, |%_)
+}
+
+# Pre-processing "smartmark"
+multi sub matches(
+  Str:D $haystack, Str:D $needle, :$ignoremark, :$smartmark!, *%_
+--> Slip:D) {
+    %_<ignoremark> = $ignoremark || ($smartmark && !has-marks($needle));
+    matches($haystack, $needle, |%_)
+}
+
+# Handle "words" matches
 multi sub matches(
   Str:D  $haystack,
   Str:D  $needle,
@@ -458,6 +540,7 @@ multi sub matches(
     }).Slip // Empty
 }
 
+# Handle "contains" matches
 multi sub matches(
   Str:D  $haystack,
   Str:D  $needle,
@@ -471,6 +554,7 @@ multi sub matches(
     }).Slip // Empty
 }
 
+# Handle "starts-with" matches
 multi sub matches(
    Str:D  $haystack,
    Str:D  $needle,
@@ -483,6 +567,7 @@ multi sub matches(
       !! Empty
 }
 
+# Handle "ends-with" matches
 multi sub matches(
    Str:D  $haystack,
    Str:D  $needle,
@@ -495,6 +580,7 @@ multi sub matches(
       !! Empty
 }
 
+# Handle "equal" matches
 multi sub matches(
    Str:D  $haystack,
    Str:D  $needle,
@@ -508,6 +594,7 @@ multi sub matches(
       !! Empty
 }
 
+# Pre-process mixed-in types
 multi sub matches(
   Str:D  $haystack,
   Str:D  $needle,
@@ -522,6 +609,7 @@ multi sub matches(
       :$ignoremark
 }
 
+# Handle Callable matches (aka Regex)
 multi sub matches(
        Str:D  $haystack,
   Callable:D  $needle,
@@ -545,6 +633,7 @@ multi sub matches(
     }
 }
 
+# Pre-process multiple matches
 multi sub matches(Str:D $haystack, @needles, |c) {
     for @needles {
         if Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
@@ -554,6 +643,9 @@ multi sub matches(Str:D $haystack, @needles, |c) {
     }
     Empty
 }
+
+#-------------------------------------------------------------------------------
+# Subroutine exporting logic
 
 my sub EXPORT(*@names) {
     Map.new: @names
