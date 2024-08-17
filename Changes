@@ -1,9 +1,14 @@
 Revision history for highlighter
 
 {{$NEXT}}
+
+0.0.21  2024-08-17T14:45:06+02:00
     - Add support for ":smartcase" and ":smartmark" named arguments
     - Add dependency on String::Utils for "is-lowercase" and "has-marks"
       logic
+    - Added generic named arguments section to documentation, in order
+      to not repeat ourselves
+    - Moved selective importing section in documentation towards the end
 
 0.0.20  2024-08-16T16:03:50+02:00
     - Fix handling of multiple needes, especially in light of summarizing
