@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Compile time setup
 
-use has-word:ver<0.0.6>:auth<zef:lizmat>;   # has-word
-use String::Utils:ver<0.0.25+>:auth<zef:lizmat> <
+use has-word:ver<0.0.6+>:auth<zef:lizmat>;   # has-word
+use String::Utils:ver<0.0.32+>:auth<zef:lizmat> <
   has-marks is-lowercase
 >;
 
@@ -119,8 +119,13 @@ multi sub highlighter(
 
 # Pre-processing "smartmark"
 multi sub highlighter(
-  Str:D $haystack, Str:D $needle, Str:D $before, Str:D $after = $before,
-  :$ignoremark, :$smartmark!, *%_
+  Str:D  $haystack,
+  Str:D  $needle,
+  Str:D  $before,
+  Str:D  $after = $before,
+        :$ignoremark,
+        :$smartmark!,
+        *%_
 --> Str:D) {
     %_<ignoremark> = $ignoremark || ($smartmark && !has-marks($needle));
     highlighter($haystack, $needle, $before, $after, |%_)
@@ -346,7 +351,10 @@ multi sub highlighter(
 
 # Pre-process multiple needles
 multi sub highlighter(
-  Str:D $haystack, @needles, :$summary-if-larger-than is copy, |c
+  Str:D  $haystack,
+         @needles,
+        :$summary-if-larger-than is copy,
+        |c
 ) {
 
     # Make sure no summarizing if no highlighting was done
@@ -383,7 +391,11 @@ proto sub columns(|) is export {*}
 
 # Pre-processing "smartcase"
 multi sub columns(
-  Str:D $haystack, Str:D $needle, :$ignorecase, :$smartcase!, *%_
+  Str:D  $haystack,
+  Str:D  $needle,
+        :$ignorecase,
+        :$smartcase!,
+        *%_
 ) {
     %_<ignorecase> := $ignorecase || ($smartcase && is-lowercase($needle));
     columns($haystack, $needle, |%_)
@@ -391,7 +403,11 @@ multi sub columns(
 
 # Pre-processing "smartmark"
 multi sub columns(
-  Str:D $haystack, Str:D $needle, :$ignoremark, :$smartmark!, *%_
+  Str:D  $haystack,
+  Str:D  $needle,
+        :$ignoremark,
+        :$smartmark!,
+        *%_
 ) {
     %_<ignoremark> = $ignoremark || ($smartmark && !has-marks($needle));
     columns($haystack, $needle, |%_)
@@ -512,7 +528,11 @@ proto sub matches(|) is export {*}
 
 # Pre-processing "smartcase"
 multi sub matches(
-  Str:D $haystack, Str:D $needle, :$ignorecase, :$smartcase!, *%_
+  Str:D  $haystack,
+  Str:D  $needle,
+        :$ignorecase,
+        :$smartcase!,
+        *%_
 --> Slip:D) {
     %_<ignorecase> := $ignorecase || ($smartcase && is-lowercase($needle));
     matches($haystack, $needle, |%_)
@@ -520,7 +540,11 @@ multi sub matches(
 
 # Pre-processing "smartmark"
 multi sub matches(
-  Str:D $haystack, Str:D $needle, :$ignoremark, :$smartmark!, *%_
+  Str:D  $haystack,
+  Str:D  $needle,
+        :$ignoremark,
+        :$smartmark!,
+        *%_
 --> Slip:D) {
     %_<ignoremark> = $ignoremark || ($smartmark && !has-marks($needle));
     matches($haystack, $needle, |%_)
