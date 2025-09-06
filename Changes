@@ -1,6 +1,10 @@
 Revision history for highlighter
 
 {{$NEXT}}
+    - Up dependencies
+    - Several modernizations
+    - 100% coverage testing
+    - Update copyright year
 
 0.0.21  2024-08-17T14:45:06+02:00
     - Add support for ":smartcase" and ":smartmark" named arguments

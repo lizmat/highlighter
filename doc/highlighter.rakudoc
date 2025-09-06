@@ -7,7 +7,6 @@ highlighter - highlight something inside a string
 =head1 SYNOPSIS
 
 =begin code :lang<raku>
-
 use highlighter;
 
 say highlighter "foo bar", "bar", "<b>", "</b>", :type<words>; # foo <b>bar</b>
@@ -17,12 +16,11 @@ say highlighter "foo bar", "bar" but Type<words>, "*";       # foo *bar*
 say columns "foo bar", "bar", :type<words>;                    # (5)
 
 say matches "foo bar", "O", :type<contains>, :ignorecase;      # o o
-
 =end code
 
 =head1 DESCRIPTION
 
-The highlighter distribution exports three subroutines by default that
+The C<highlighter> distribution exports three subroutines by default that
 are related to highlighting / indicating subsections of strings depending
 on the result of some type of search.
 
@@ -90,7 +88,6 @@ regular expression (the needle) with a given highlight string.  Returns the
 haystack If the needle could not be found.
 
 =begin code :lang<raku>
-
 use highlighter 'highlighter';
 
 say highlighter "foo bar", "bar", "<b>", "</b>", :type<words>; # foo <b>bar</b>
@@ -104,7 +101,6 @@ say highlighter "foo bar", "ar", "*", :type<ends-with>;        # foo b*ar*
 say highlighter "foo", "foo", "*", :type<equal>;               # *foo*
 
 say highlighter "foo bar", / b.r /, "*";                       # foo *bar*
-
 =end code
 
 The following positional parameters can be passed:
@@ -154,7 +150,6 @@ highlighting should occur, given a haystack, needle and optional named
 arguments.
 
 =begin code :lang<raku>
-
 use highlighter 'columns';
 
 say columns "foo bar", "bar", :type<words>;       # (5)
@@ -168,7 +163,6 @@ say columns "foo bar", "ar", :type<ends-with>;    # (6)
 say columns "foo", "foo", :type<equal>;           # (1)
 
 say columns "foo bar", / b.r /;                   # (5)
-
 =end code
 
 The following positional parameters can be passed:
@@ -194,7 +188,6 @@ The C<matches> subroutine returns the actual matches inside the string as
 a C<Slip> for the given haystack and needle and optional named arguments.
 
 =begin code :lang<raku>
-
 use highlighter 'matches';
 
 say matches "foo bar", "bar", :type<words>;       # bar
@@ -208,7 +201,6 @@ say matches "foo bar", "ar", :type<ends-with>;    # ar
 say matches "foo", "foo", :type<equal>;           # foo
 
 say matches "foo bar", / b.r /;                   # bar
-
 =end code
 
 =item haystack
@@ -228,9 +220,7 @@ will be returned.
 =head1 SELECTIVE IMPORTING
 
 =begin code :lang<raku>
-
 use highlighter <columns>;  # only export sub columns
-
 =end code
 
 By default all three subroutines and the C<Type> role are exported.  But
@@ -244,19 +234,15 @@ is known in this distribution, followed by the name with which it will be
 known in the lexical context in which the C<use> command is executed.
 
 =begin code :lang<raku>
-
 use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
-
 say the-columns "foo bar", "bar", :type<words>; # (5)
 
 =end code
 
 =begin code :lang<raku>
-
 use highlighter <Type:Needle>;  # export "Type" as "Needle"
 
 say columns "foo bar", "bar" but Needle<words>; # (5)
-
 =end code
 
 =head1 NOTES

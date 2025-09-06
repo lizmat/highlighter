@@ -23,7 +23,7 @@ say matches "foo bar", "O", :type<contains>, :ignorecase;      # o o
 DESCRIPTION
 ===========
 
-The highlighter distribution exports three subroutines by default that are related to highlighting / indicating subsections of strings depending on the result of some type of search.
+The `highlighter` distribution exports three subroutines by default that are related to highlighting / indicating subsections of strings depending on the result of some type of search.
 
 It also exports a role `Type` by default, which allows one to associate the type of search wanted for a given string needle.
 
@@ -196,7 +196,6 @@ To prevent name collisions and/or import any subroutine (or role) with a more me
 
 ```raku
 use highlighter <columns:the-columns>;  # export "columns" as "the-columns"
-
 say the-columns "foo bar", "bar", :type<words>; # (5)
 ```
 

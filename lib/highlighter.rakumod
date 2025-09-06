@@ -1,8 +1,8 @@
 #-------------------------------------------------------------------------------
 # Compile time setup
 
-use has-word:ver<0.0.6+>:auth<zef:lizmat>;   # has-word
-use String::Utils:ver<0.0.32+>:auth<zef:lizmat> <
+use has-word:ver<0.0.7+>:auth<zef:lizmat>;   # has-word
+use String::Utils:ver<0.0.36+>:auth<zef:lizmat> <
   has-marks is-lowercase
 >;
 
@@ -58,7 +58,7 @@ my sub highlight-from-indices(
                   ?? substr($haystack, $pos, $size)
                   !! $needle;
                 @parts.unshift: $before;
-                $to = $pos;
+                $to = $pos;  # UNCOVERABLE
             }
 
             if $to && !$only {
@@ -79,7 +79,7 @@ my sub highlight-from-indices(
                   ?? substr($haystack, $pos, $size)
                   !! $needle;
                 @parts.unshift: $before;
-                $to = $pos;
+                $to = $pos;  # UNCOVERABLE
             }
 
             @parts.unshift: substr($haystack, 0, $to)
@@ -110,8 +110,13 @@ proto sub highlighter(|) is export {*}
 
 # Pre-processing "smartcase"
 multi sub highlighter(
-  Str:D $haystack, Str:D $needle, Str:D $before, Str:D $after = $before,
-  :$ignorecase, :$smartcase!, *%_
+  Str:D  $haystack,
+  Str:D  $needle,
+  Str:D  $before,
+  Str:D  $after = $before,  # UNCOVERABLE
+        :$ignorecase,
+        :$smartcase!,
+        *%_
 --> Str:D) {
     %_<ignorecase> := $ignorecase || ($smartcase && is-lowercase($needle));
     highlighter($haystack, $needle, $before, $after, |%_)
@@ -122,7 +127,7 @@ multi sub highlighter(
   Str:D  $haystack,
   Str:D  $needle,
   Str:D  $before,
-  Str:D  $after = $before,
+  Str:D  $after = $before,  # UNCOVERABLE
         :$ignoremark,
         :$smartmark!,
         *%_
@@ -136,7 +141,7 @@ multi sub highlighter(
   Str:D  $haystack,
   Str:D  $needle,
   Str:D  $before,
-  Str:D  $after = $before,
+  Str:D  $after = $before,  # UNCOVERABLE
   Str:D :$type where $_ eq 'words',
         :$summary-if-larger-than,
         :i(:$ignorecase),
@@ -155,7 +160,7 @@ multi sub highlighter(
   Str:D  $haystack,
   Str:D  $needle,
   Str:D  $before,
-  Str:D  $after = $before,
+  Str:D  $after = $before,  # UNCOVERABLE
   Str:D :$type where !.defined || $_ eq 'contains',
         :$summary-if-larger-than,
         :i(:$ignorecase),
@@ -174,7 +179,7 @@ multi sub highlighter(
    Str:D  $haystack,
    Str:D  $needle,
    Str:D  $before,
-   Str:D  $after = $before,
+   Str:D  $after = $before,  # UNCOVERABLE
    Str:D :$type where $_ eq 'starts-with',
          :$summary-if-larger-than,
          :i(:$ignorecase),
@@ -210,7 +215,7 @@ multi sub highlighter(
    Str:D  $haystack,
    Str:D  $needle,
    Str:D  $before,
-   Str:D  $after = $before,
+   Str:D  $after = $before,  # UNCOVERABLE
    Str:D :$type where $_ eq 'ends-with',
          :$summary-if-larger-than,
          :i(:$ignorecase),
@@ -247,7 +252,7 @@ multi sub highlighter(
    Str:D  $haystack,
    Str:D  $needle,
    Str:D  $before,
-   Str:D  $after = $before,
+   Str:D  $after = $before,  # UNCOVERABLE
    Str:D :$type where $_ eq 'equal',
          :$summary-if-larger-than,
          :i(:$ignorecase),
@@ -283,7 +288,7 @@ multi sub highlighter(
        Str:D  $haystack,
   Callable:D  $needle,
        Str:D  $before = "",
-       Str:D  $after  = $before,
+       Str:D  $after  = $before,  # UNCOVERABLE
              :$summary-if-larger-than,
              :i(:$ignorecase),
              :m(:$ignoremark),
@@ -295,7 +300,7 @@ multi sub highlighter(
         my int $pos;
         my int $c;
 
-        while $haystack.match($needle, :$c) {
+        while $haystack.match($needle, :$c) {  # UNCOVERABLE
             @fromtos.push: $/.to;
             @fromtos.push: $/.from;
             $c = $/.pos;
@@ -320,7 +325,7 @@ multi sub highlighter(
                 @parts.unshift: $after;
                 @parts.unshift: $haystack.substr($from, $pos - $from);
                 @parts.unshift: $before;
-                $to = $from;
+                $to = $from;  # UNCOVERABLE
             }
             if $to && !$only {
                 @parts.unshift: $to < 15
@@ -335,7 +340,7 @@ multi sub highlighter(
                 @parts.unshift: $after;
                 @parts.unshift: $haystack.substr($from, $pos - $from);
                 @parts.unshift: $before;
-                $to = $from;
+                $to = $from;  # UNCOVERABLE
             }
             @parts.unshift: $haystack.substr(0, $to)
               if $to && !$only;
@@ -367,7 +372,7 @@ multi sub highlighter(
               $highlighted, .value, :type(.key), :$summary-if-larger-than, |c
             );
         }
-        elsif Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {
+        elsif Regex.ACCEPTS($_) || !Callable.ACCEPTS($_) {  # UNCOVERABLE
             $highlighted := highlighter(
               $highlighted, $_, :$summary-if-larger-than, |c
             );
@@ -444,7 +449,7 @@ multi sub columns(
          :m(:$ignoremark),
 --> List:D) {
     $haystack.starts-with($needle, :$ignorecase, :$ignoremark)
-      ?? BEGIN (1,)
+      ?? BEGIN (1,)  # UNCOVERABLE
       !! ()
 }
 
@@ -471,7 +476,7 @@ multi sub columns(
 --> List:D) {
     $haystack.chars == $needle.chars
       && $haystack.index($needle, :$ignorecase, :$ignoremark).defined
-      ?? BEGIN (1,)
+      ?? BEGIN (1,)  # UNCOVERABLE
       !! ()
 }
 
@@ -496,7 +501,7 @@ multi sub columns(
         my int $c;
         my $columns := IterationBuffer.CREATE;
 
-        while $haystack.match($needle, :$c) {
+        while $haystack.match($needle, :$c) {  # UNCOVERABLE
             $columns.push: $/.from + 1;
             $c = $/.pos;
         }
@@ -645,7 +650,7 @@ multi sub matches(
         my int $c;
         my $columns := IterationBuffer.CREATE;
 
-        while $haystack.match($needle, :$c) {
+        while $haystack.match($needle, :$c) {  # UNCOVERABLE
             $columns.push: $/.Str;
             $c = $/.pos;
         }

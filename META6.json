@@ -5,20 +5,29 @@
   ],
   "build-depends": [
   ],
-  "depends": [
-    "has-word:ver<0.0.6+>:auth<zef:lizmat>",
-    "String::Utils:ver<0.0.32+>:auth<zef:lizmat>"
-  ],
+  "depends": {
+    "runtime": {
+      "requires": [
+        "has-word:ver<0.0.7+>:auth<zef:lizmat>",
+        "String::Utils:ver<0.0.36+>:auth<zef:lizmat>"
+      ]
+    }
+  },
   "description": "highlight something inside a string",
   "license": "Artistic-2.0",
   "name": "highlighter",
-  "perl": "6.d",
   "provides": {
     "highlighter": "lib/highlighter.rakumod"
   },
+  "raku": "6.d",
   "resources": [
   ],
   "source-url": "https://github.com/lizmat/highlighter.git",
+  "support": {
+    "bugtracker": "https://github.com/lizmat/highlighter/issues",
+    "email": "liz@raku.rocks",
+    "source": "https://github.com/lizmat/highlighter.git"
+  },
   "tags": [
     "HIGHLIGHT",
     "COLUMNS",
