@@ -1,6 +1,8 @@
 Revision history for highlighter
 
 {{$NEXT}}
+
+0.0.22  2025-09-06T12:59:28+02:00
     - Up dependencies
     - Several modernizations
     - 100% coverage testing
